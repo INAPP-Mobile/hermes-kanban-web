@@ -88,6 +88,39 @@ HERMES_HOME/
 
 In Railway, the volume is mounted at `/opt/data` (the default `HERMES_HOME` in the base image). The `start.sh` wrapper ensures `kanban/boards/`, `kanban/stash/` subdirectories exist and seeds a minimal `config.yaml` if none is present.
 
+## LLM Setup
+
+On a fresh deploy, no LLM provider is configured. When you open the app, a **setup wizard** modal appears automatically. Choose a provider, enter your base URL, model name, and API key (if applicable), then click **Save & Reload**. The wizard writes provider env vars to `/opt/data/.env` and sets the model in `config.yaml` via `hermes config set model`.
+
+After setup, the modal will not reappear on subsequent visits. If you need to change your LLM configuration later, re-add the env vars to `/opt/data/.env` (via `railway ssh` or volume mount) and set the model with `hermes config set model <model-name>`.
+
+### Supported Providers
+
+| Provider | Base URL env | API Key env | Default Base URL |
+|---|---|---|---|
+| Ollama | `OLLAMA_BASE_URL` | *(none)* | `http://localhost:11434` |
+| OpenAI | `OPENAI_BASE_URL` | `OPENAI_API_KEY` | `https://api.openai.com/v1` |
+| OpenRouter | `OPENAI_BASE_URL` | `OPENAI_API_KEY` | `https://openrouter.ai/api/v1` |
+| Anthropic | `ANTHROPIC_BASE_URL` | `ANTHROPIC_API_KEY` | `https://api.anthropic.com` |
+| Groq | `GROQ_BASE_URL` | `GROQ_API_KEY` | `https://api.groq.com/openai/v1` |
+| DeepSeek | `DEEPSEEK_BASE_URL` | `DEEPSEEK_API_KEY` | `https://api.deepseek.com/v1` |
+
+### Advanced: Manual Configuration
+
+You can also set these directly on the Railway service via the Railway dashboard or CLI:
+
+```bash
+# Example: configure Ollama
+railway variables set \
+  OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+  HERMES_HOME=/opt/data
+railway variables set --secret HERMES_MODEL=qwen3:8b
+# Then set the model in config.yaml:
+railway ssh -- sh -c 'hermes config set model qwen3:8b'
+```
+
+> **Note**: Setting env vars on the service only takes effect after a redeploy (the running uvicorn process does not hot-reload `.env`). The wizard handles this by requiring a page reload after save.
+
 ## Architecture Notes
 
 - **Hermes CLI dependency**: Task operations, profile management, and board settings shell out to the `hermes` CLI via `subprocess.run`. The `hermes` binary is provided by the `nousresearch/hermes-agent` base image's venv.
