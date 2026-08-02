@@ -24,7 +24,7 @@ The app runs **inside the `nousresearch/hermes-agent` Docker image**, so the `he
 
 ### Deploy to Railway
 
-[![Deploy to Railway](https://railway.app/button.svg)](https://railway.com/deploy/hermes-kanban-web)
+[![Deploy to Railway](https://railway.app/button.svg)](https://railway.com/deploy/-aYE-b)
 
 Click the button above to deploy this template to Railway. The template creates a single service from the `nousresearch/hermes-kanban-web` Docker image with a persistent volume mounted at `/opt/data` for all board and profile data.
 
