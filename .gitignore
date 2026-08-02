@@ -24,3 +24,6 @@ Thumbs.db
 # Virtual environments
 .venv/
 venv/
+
+# Local Hermes profile/plan artifacts
+.hermes/

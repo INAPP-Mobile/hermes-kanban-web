@@ -8,6 +8,7 @@ var App = {
         loadProfiles();
         loadModelOptions();
         connectEventStream();
+        App.checkSetupStatus();
     },
 
     // Board
@@ -63,6 +64,24 @@ var App = {
 
     // Theme
     toggleTheme: toggleTheme,
+
+    // LLM Setup Wizard
+    checkSetupStatus: function() {
+        api('GET', '/api/status').then(function(s) {
+            if (!s.llm_configured) {
+                App.openSetupWizard();
+            }
+        }).catch(function() {});
+    },
+
+    openSetupWizard: function() {
+        document.getElementById('setupWizard').classList.add('active');
+        App.renderProviderList();
+    },
+
+    closeSetupWizard: function() {
+        document.getElementById('setupWizard').classList.remove('active');
+    },
 };
 
 document.addEventListener('DOMContentLoaded', function() {
