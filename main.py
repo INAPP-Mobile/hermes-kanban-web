@@ -7,7 +7,7 @@ import os
 
 from fastapi import FastAPI
 
-from app.routes import boards, tasks, profiles, events, theme, stash, static, status
+from app.routes import boards, tasks, profiles, events, theme, stash, static, status, setup
 
 app = FastAPI(title="Hermes Kanban Manager")
 
@@ -15,6 +15,7 @@ app.include_router(boards.router)
 app.include_router(tasks.router)
 app.include_router(profiles.router)
 app.include_router(status.router)
+app.include_router(setup.router)
 app.include_router(events.router)
 app.include_router(theme.router)
 app.include_router(stash.router)
