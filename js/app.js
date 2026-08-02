@@ -1,0 +1,70 @@
+// --- App Namespace & Init ---
+var App = {
+    activeProfile: 'worker3',
+
+    init: function() {
+        initTheme();
+        loadBoards();
+        loadProfiles();
+        loadModelOptions();
+        connectEventStream();
+    },
+
+    // Board
+    switchBoard: function(slug) {
+        if (slug) {
+            BOARD_SLUG = slug;
+            document.getElementById('boardDropdownMenu').style.display = 'none';
+            document.removeEventListener('click', closeBoardDropdownOnOutside);
+            document.getElementById('currentBoardLabel').textContent = slug;
+            renderBoardDropdown();
+            window.location.href = '/?board=' + slug;
+        }
+    },
+    toggleBoardDropdown: toggleBoardDropdown,
+    openCreateBoardModal: openCreateBoardModal,
+    closeCreateBoardModal: closeCreateBoardModal,
+    submitCreateBoard: submitCreateBoard,
+    openDeleteBoardModal: openDeleteBoardModal,
+    closeDeleteBoardModal: closeDeleteBoardModal,
+    submitDeleteBoard: submitDeleteBoard,
+    openEditBoardModal: openEditBoardModal,
+    closeEditBoardModal: closeEditBoardModal,
+    submitEditBoard: submitEditBoard,
+
+    // Profiles
+    toggleProfileDropdown: toggleProfileDropdown,
+    selectProfile: selectProfile,
+    openEditProfileModal: openEditProfileModal,
+    closeEditProfileModal: closeEditProfileModal,
+    submitEditProfile: submitEditProfile,
+    openCreateProfileModal: openCreateProfileModal,
+    closeCreateProfileModal: closeCreateProfileModal,
+    submitCreateProfile: submitCreateProfile,
+    openDeleteProfileModal: openDeleteProfileModal,
+    closeDeleteProfileModal: closeDeleteProfileModal,
+    submitDeleteProfile: submitDeleteProfile,
+    loadProfiles: loadProfiles,
+
+    // Tasks
+    openCreateModal: openCreateModal,
+    openEditTaskModal: openEditTaskModal,
+    closeTaskModal: closeTaskModal,
+    submitTaskModal: submitTaskModal,
+    changeStatus: changeStatus,
+    deleteTask: deleteTask,
+    duplicateTask: duplicateTask,
+
+    // Detail
+    openDetail: openDetail,
+    loadDetail: loadDetail,
+    closeDetail: closeDetail,
+    addComment: addComment,
+
+    // Theme
+    toggleTheme: toggleTheme,
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    App.init();
+});

@@ -1,0 +1,10 @@
+{
+    "PORT": {
+        "value": "8502",
+        "description": "HTTP port Railway routes to. Railway injects this automatically."
+    },
+    "HERMES_HOME": {
+        "value": "/opt/data",
+        "description": "Root directory for all Hermes persistent state (boards, profiles, config). Mounted as a Railway volume."
+    }
+}
