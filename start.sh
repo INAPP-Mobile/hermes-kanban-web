@@ -1,9 +1,37 @@
 #!/bin/bash
 # Railway runtime wrapper for Hermes Kanban Web.
-# 1. Ensures HERMES_HOME (default /opt/data) exists and kanban subdirs are present.
-# 2. Seeds a minimal config.yaml if none exists (orchestrator_profile default).
-# 3. Launches uvicorn on the PORT Railway injects (default 8502 for local dev).
+#
+# Boot modes:
+#   1. Railway direct-start (startCommand runs as PID 1, no s6 init): we are
+#      root here and MUST fix /opt/data ownership before dropping to hermes,
+#      because Railway's volume bind-mounts as root-owned (drwxr-xr-x root root)
+#      and the hermes user (UID 10000) cannot create subdirs like cron/ or
+#      kanban/ in it.
+#   2. Base-image s6 path (docker run with default entrypoint): stage2-hook
+#      (cont-init.d/01-hermes-setup) already chowned /opt/data to hermes, and
+#      main-wrapper execs this script as hermes — the root branch is skipped.
+#
+# After ownership is ensured we drop to the hermes user so uvicorn and every
+# `hermes` CLI subprocess it spawns run as hermes (UID 10000), matching the
+# base image's intended non-root model.
 set -e
+
+if [ "$(id -u)" = 0 ]; then
+    echo "[kanban] running as root — ensuring /opt/data ownership for hermes"
+    mkdir -p /opt/data
+    chown hermes:hermes /opt/data 2>/dev/null || \
+        echo "[kanban] warning: chown /opt/data failed (rootless container?) — continuing"
+    # Top-level files (config.yaml, auth.json, .env, …) written by a previous
+    # root run must become hermes-owned too, else the CLI hits EACCES on them.
+    find /opt/data -maxdepth 1 -type f -exec chown hermes:hermes {} + 2>/dev/null || true
+    for sub in cron sessions logs hooks memories skills skins plans workspace home profiles kanban; do
+        if [ -e "/opt/data/$sub" ]; then
+            chown -R hermes:hermes "/opt/data/$sub" 2>/dev/null || true
+        fi
+    done
+    echo "[kanban] dropping to hermes user"
+    exec /command/s6-setuidgid hermes "$0" "$@"
+fi
 
 PORT="${PORT:-8502}"
 export HERMES_HOME="${HERMES_HOME:-/opt/data}"
