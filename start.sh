@@ -53,6 +53,13 @@ fi
 
 cd /app
 
+# Load hermes runtime .env (provider API keys, base URLs, etc.) so that
+# /api/status can detect configured providers from os.environ.
+if [ -f "${HERMES_HOME}/.env" ]; then
+    set -a; source "${HERMES_HOME}/.env"; set +a
+    echo "[kanban] sourced ${HERMES_HOME}/.env"
+fi
+
 exec python3 -m uvicorn main:app \
     --host 0.0.0.0 \
     --port "${PORT}"

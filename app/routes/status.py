@@ -14,10 +14,15 @@ _PROVIDER_ENV_KEYS = (
 )
 
 
+def _config_path():
+    hermes_home = os.environ.get("HERMES_HOME", os.path.expanduser("~/.hermes"))
+    return os.environ.get("HERMES_CONFIG_PATH") or os.path.join(hermes_home, "config.yaml")
+
+
 @router.get("/status")
 def get_status():
     model = ""
-    config_path = os.environ.get("HERMES_CONFIG_PATH")
+    config_path = _config_path()
     if config_path and os.path.exists(config_path):
         try:
             with open(config_path) as f:

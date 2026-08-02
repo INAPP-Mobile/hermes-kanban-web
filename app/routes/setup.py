@@ -17,7 +17,8 @@ _PROVIDER_SPEC = {
 
 def _env_path():
     """Return the path to the hermes runtime .env file (sibling of config.yaml)."""
-    cfg = os.environ.get("HERMES_CONFIG_PATH", os.path.expanduser("~/.hermes/config.yaml"))
+    hermes_home = os.environ.get("HERMES_HOME", os.path.expanduser("~/.hermes"))
+    cfg = os.environ.get("HERMES_CONFIG_PATH") or os.path.join(hermes_home, "config.yaml")
     return os.path.join(os.path.dirname(cfg), ".env")
 
 def _write_env_line(path, key, value):
