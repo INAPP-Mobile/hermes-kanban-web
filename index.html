@@ -35,6 +35,17 @@
     <div class="loading">Loading...</div>
 </div>
 
+<!-- Setup Wizard Modal (inserted after the #board div, line ~36) -->
+<!-- Reuses .modal-overlay/.modal CSS that detailModal already uses (css/styles.css:548+) -->
+<div class="modal-overlay" id="setupWizard">
+    <div class="modal" style="max-width: 560px;">
+        <h2>LLM Setup</h2>
+        <span class="close" onclick="App.closeSetupWizard()">&times;</span>
+        <div class="modal-body" id="setupWizardContent">
+        </div>
+    </div>
+</div>
+
 <!-- Task Detail Modal -->
 <div class="modal-overlay" id="detailModal">
     <div class="modal">

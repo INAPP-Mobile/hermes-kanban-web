@@ -571,6 +571,7 @@ body {
   border: 1px solid var(--border);
 }
 .modal h2 { margin-bottom: 16px; font-size: 18px; flex-shrink: 0; }
+.close { float: right; font-size: 28px; font-weight: bold; cursor: pointer; color: var(--text-secondary); }
 .modal-body-full { min-height: 100px; }
 
 /* Modal Body (scrollable) */
