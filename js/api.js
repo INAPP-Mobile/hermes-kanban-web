@@ -3,8 +3,8 @@ async function api(method, path, body) {
     var opts = { method: method, headers: { 'Content-Type': 'application/json' } };
     if (body) opts.body = JSON.stringify(body);
     // Ensure path starts with single / — strips any leading slash before prepending /api/
-    var p = '/' + path.replace(/^\//, '');  // 'status'→'/status', '/status'→'/status', '/api/status'→'/api/status'
-    var url = '/api' + p;
+    var raw = path.replace(/^\//, '');  // 'status'→'status', '/status'→'status', '/api/status'→'api/status'
+    var url = '/' + (raw.startsWith('api/') ? raw : 'api/' + raw);
     var res = await fetch(url, opts);
     if (!res.ok) throw new Error(await res.text());
     return res.json();
