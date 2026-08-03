@@ -19,11 +19,11 @@ App.renderProviderList = function() {
 App.chooseProvider = function(p) {
     var area = document.getElementById('setupWizardContent');
     area.innerHTML =
-        '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Configure provider for profile <b>' + (p.profile_name || 'worker3') + '</b> — used by the orchestrator.</p>' +
+        '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Configure provider for profile <b>' + (p.profile_name || 'default') + '</b> — used by the orchestrator.</p>' +
         '<label>Base URL</label><input type="text" id="setupBaseUrl" value="' + p.default_url + '" style="width:100%;margin-bottom:8px;">' +
         '<label>Model</label><input type="text" id="setupModel" placeholder="' + (p === PROVIDERS[0] ? 'e.g. qwen3:8b' : 'e.g. gpt-4o') + '" style="width:100%;margin-bottom:8px;">' +
         (p.key !== 'ollama' ? '<label>API Key</label><input type="password" id="setupApiKey" style="width:100%;margin-bottom:8px;">' : '') +
-        '<label>Profile name</label><input type="text" id="setupProfile" value="worker3" style="width:100%;margin-bottom:8px;">' +
+        '<label>Profile name</label><input type="text" id="setupProfile" value="default" style="width:100%;margin-bottom:8px;">' +
         '<button onclick="App.saveSetup(\'' + p.key + '\')" class="btn-new-task" style="margin-top:12px;">Save &amp; Reload</button>';
 };
 

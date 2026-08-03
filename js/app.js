@@ -71,7 +71,9 @@ var App = {
             if (!s.llm_configured) {
                 App.openSetupWizard();
             }
-        }).catch(function() {});
+        }).catch(function(e) {
+            console.warn('checkSetupStatus failed:', e);
+        });
     },
 
     openSetupWizard: function() {
