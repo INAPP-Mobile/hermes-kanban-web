@@ -13,10 +13,10 @@ async function loadBoards() {
             // Fresh workspace: no boards yet. loadTasks('') would bail on the
             // empty slug and leave #board stuck at "Loading..." — render an
             // actionable empty state instead.
-            document.getElementById('board').innerHTML =
+            document.getElementById('kanbanBoard').innerHTML =
                 '<div class="empty-state">' +
                 '<p>No boards yet — create your first board to get started.</p>' +
-                '<button class="btn-new-task" onclick="App.openCreateBoardModal()">&#43; Create Board</button>' +
+                '<button class="btn-new-task" onclick="App.openCreateBoardModal()">+ Create Board</button>' +
                 '</div>';
             // Update profile label since no board orchestrator-profile is available
             document.getElementById('currentProfileLabel').textContent = allProfiles.length ? App.activeProfile : 'default';
@@ -31,7 +31,7 @@ async function loadBoards() {
         }).catch(function() {});
     } catch (e) {
         console.error('Failed to load boards:', e);
-        document.getElementById('board').innerHTML = '<div class="error">Failed to load boards: ' + e.message + '</div>';
+        document.getElementById('kanbanBoard').innerHTML = '<div class="error">Failed to load boards: ' + e.message + '</div>';
     }
 }
 

@@ -208,7 +208,7 @@ function loadTasks(boardSlug) {
         renderStats();
     }).catch(function(e) {
         console.error('Failed to load tasks:', e);
-        document.getElementById('board').innerHTML = '<div class="error">Failed to load tasks: ' + e.message + '</div>';
+        document.getElementById('kanbanBoard').innerHTML = '<div class="error">Failed to load tasks: ' + e.message + '</div>';
     });
 }
 
@@ -255,7 +255,7 @@ function renderBoard() {
         html += renderCard(stashTasks[s], true);
     }
     html += '</div></div>';
-    document.getElementById('board').innerHTML = html;
+    document.getElementById('kanbanBoard').innerHTML = html;
 }
 
 function renderCard(task, isStash) {

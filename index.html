@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico" type="image/png">
 <title>Hermes Kanban Web</title>
-<link rel="stylesheet" href="/assets/css/styles.css">
+<link rel="stylesheet" href="/assets/css/styles.css?v=13">
 <script>try{var t=localStorage.getItem('kanban-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}</script>
 </head>
 <body>
@@ -45,7 +45,7 @@
         <div class="modal-body-full">
             <input type="hidden" id="taskId">
             <div class="field"><label>Title *</label><input id="taskTitle" placeholder="Task title..."></div>
-            <div class="field"><label>Description</label><textarea id="taskDesc" placeholder="Description (markdown supported)..."></textarea></div>
+            <div class="field"><label>Description</label><textarea id="taskBody" placeholder="Description (markdown supported)..."></textarea></div>
             <div class="field"><label>Status</label>
                 <select id="taskStatus">
                     <option value="backlog">Backlog</option>
@@ -62,8 +62,22 @@
                 <input type="checkbox" id="taskPromote">
                 <span class="help-text">When checked, this task will be promoted to the corresponding agent status.</span>
             </div>
+            <div class="field"><label>Priority (0-high, 5-low)</label><input type="number" id="taskPriority" value="0" min="0" max="5"></div>
+            <div class="field"><label>Goal Mode</label>
+                <select id="taskGoalMode">
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                </select>
+            </div>
+            <div class="field"><label>Workspace Path</label><input id="taskWorkdir" placeholder="/optional/path"></div>
+            <div class="field"><label>Parent IDs (comma-separated)</label><input id="taskParents" placeholder="id1,id2"></div>
+            <div class="field"><label>Child IDs (comma-separated)</label><input id="taskChildren" placeholder="id1,id2"></div>
+            <div class="field"><label>Assignee</label><select id="taskAssignee"></select></div>
         </div>
-        <div id="taskActions" class="modal-actions"></div>
+        <div class="modal-actions">
+            <button onclick="closeTaskModal()">Cancel</button>
+            <button onclick="submitTaskModal()" id="taskModalSubmit" style="background:#0ea5e9;">Create</button>
+        </div>
     </div>
 </div>
 
@@ -72,17 +86,33 @@
     <div class="modal">
         <h2><span class="modal-icon">&#128196;</span><span>Edit Task</span></h2>
         <div class="modal-body-full" id="detailContent"></div>
-        <div id="#detailActions" class="modal-actions"></div>
+        <div id="detailActions" class="modal-actions"></div>
     </div>
 </div>
 
 <!-- Create Board Modal -->
-<input type="hidden" id="deleteBoardSlug">
 <div class="modal-overlay" id="createBoardModal">
     <div class="modal">
         <h2>Add New Board</h2>
         <div class="field"><label>Board Name *</label><input type="text" id="newBoardName" placeholder="e.g., Releases"></div>
         <div class="field"><label>Slug (auto-lowered)</label><input type="text" id="newBoardSlug" readonly></div>
+        <div class="modal-actions">
+            <button onclick="closeCreateBoardModal()">Cancel</button>
+ <button onclick="submitCreateBoard()" style="background:#0ea5e9;">Create</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Board Modal -->
+<div class="modal-overlay" id="editBoardModal">
+    <div class="modal">
+        <h2>Edit Board</h2>
+        <div class="field"><label>New Slug *</label><input type="text" id="editBoardSlug"></div>
+        <div class="field"><label>Default Workspace Path</label><input type="text" id="editBoardWorkdir" placeholder="/optional/path"></div>
+    </div>
+    <div class="modal-actions">
+        <button onclick="closeEditBoardModal()">Cancel</button>
+        <button onclick="submitEditBoard()" style="background:#0ea5e9;">Save Changes</button>
     </div>
 </div>
 
@@ -90,9 +120,51 @@
 <div class="modal-overlay" id="deleteBoardModal">
     <div class="modal">
         <h2>Delete Board</h2>
-        <p id="deleteBoardMsg"></p>
-        <button onclick="confirmDeleteBoard(false)" style="background:#6c757d;">Cancel</button>
-        <button onclick="submitDeleteBoard()" style="background:#dc3545;">Delete</button>
+        <p>The board <strong id="deleteBoardName"></strong> will be permanently deleted along with all its tasks. This action cannot be undone.</p>
+        <div class="modal-actions">
+            <button onclick="closeDeleteBoardModal()">Cancel</button>
+            <button onclick="submitDeleteBoard()" style="background:#dc3545;">Delete Board</button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Profile Modal -->
+<div class="modal-overlay" id="createProfileModal">
+    <div class="modal">
+        <h2>Create New Orchestrator Profile</h2>
+        <div class="field"><label>Profile Name *</label><input type="text" id="newProfileName" placeholder="e.g., coder-mike"></div>
+        <div class="field"><label>Description</label><input type="text" id="newProfileDesc" placeholder="Optional description..."></div>
+        <div class="field"><label>LLM Model</label><select id="newProfileModel"></select></div>
+        <div class="field"><label>Clone From Existing Profile</label><select id "newProfileClone"><option value="">-- none --</option></select></div>
+    </div>
+    <div class="modal-actions">
+        <button onclick="closeCreateProfileModal()">Cancel</button>
+        <button onclick="submitCreateProfile()" style="background:#0ea5e9;">Create</button>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal-overlay" id="editProfileModal">
+    <div class="modal">
+        <h2>Edit Orchestrator Profile</h2>
+        <div class="field"><label>New Profile Name *</label><input type="text" id="editProfileName"></div>
+        <div class="field"><label>Description</label><input type="text" id="editProfileDesc" placeholder="Optional description..."></div>
+        <div class="field"><label>LLM Model</label><select id="editProfileModel"></select></div>
+        <button onclick="closeEditProfileModal()" style="margin-right:8px;">Cancel</button>
+        <button onclick="submitEditProfile()" style="background:#0ea5e9;">Save Changes</button>
+    </div>
+</div>
+
+<!-- Delete Profile Modal -->
+<div class="modal-overlay" id="deleteProfileModal">
+    <div class="modal">
+        <h2>Delete Orchestrator Profile</h2>
+        <p>The orchestrator profile "<strong id="deleteProfileName"></strong>" will be permanently deleted.</p>
+        <p style="color:#dc3545;font-weight:bold;">If this is the active profile, it cannot be deleted.</p>
+        <div class="modal-actions">
+            <button onclick="closeDeleteProfileModal()">Cancel</button>
+            <button onclick="submitDeleteProfile()" style="background:#dc3545;">Delete</button>
+        </div>
     </div>
 </div>
 
@@ -118,17 +190,17 @@
 <!-- Toast Notification -->
 <div class="toast" id="toast"></div>
 
-<script src="/assets/js/utils.js?v=12"></script>
-<script src="/assets/js/api.js?v=12"></script>
-<script src="/assets/js/theme.js?v=12"></script>
-<script src="/assets/js/boards.js?v=12"></script>
-<script src="/assets/js/profiles.js?v=12"></script>
-<script src="/assets/js/tasks.js?v=12"></script>
-<script src="/assets/js/detail.js?v=12"></script>
-<script src="/assets/js/dragdrop.js?v=12"></script>
-<script src="/assets/js/websocket.js?v=12"></script>
-<script src="/assets/js/setup-wizard.js?v=12"></script>
-<script src="/assets/js/app.js?v=12"></script>
+<script src="/assets/js/utils.js?v=13"></script>
+<script src="/assets/js/api.js?v=13"></script>
+<script src="/assets/js/theme.js?v=13"></script>
+<script src="/assets/js/boards.js?v=13"></script>
+<script src="/assets/js/profiles.js?v=13"></script>
+<script src="/assets/js/tasks.js?v=13"></script>
+<script src="/assets/js/detail.js?v=13"></script>
+<script src="/assets/js/dragdrop.js?v=13"></script>
+<script src="/assets/js/websocket.js?v=13"></script>
+<script src="/assets/js/setup-wizard.js?v=13"></script>
+<script src="/assets/js/app.js?v=13"></script>
 
 <!-- Hermes Agent Integration -->
 <iframe id="canvasFrame" style="display:none;" height="0" width="0"></iframe>

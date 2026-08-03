@@ -2,7 +2,7 @@
 var draggedCard = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-    var board = document.getElementById('board');
+    var board = document.getElementById('kanbanBoard');
 
     board.addEventListener('click', function(e) {
         var card = e.target.closest('.card');
