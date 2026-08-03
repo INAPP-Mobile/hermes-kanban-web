@@ -71,9 +71,24 @@ var App = {
         api('GET', 'status').then(function(s) {
             if (!s.llm_configured) {
                 App.openSetupWizard();
+                setTimeout(function() { 
+                    var btn = document.getElementById('relaunchSetupBtn'); 
+                    // Show reconfigure hint after wizard auto-closes — only if still unconfigured
+                    if (btn && !document.getElementById('setupWizard').classList.contains('active')) {
+                        console.log('status remains unconfigured, showing btn');
+                        btn.title = 'LLM not configured — click to set up';
+                    }
+                }, 200);
+            } else {
+                // LLM already configured — show the reconfigure button immediately
+                var btn = document.getElementById('relaunchSetupBtn');
+                if (btn) { btn.style.display = 'flex'; btn.title = 'LLM configured — click to change settings'; }
             }
         }).catch(function(e) {
             console.warn('checkSetupStatus failed:', e);
+            // On error, show button so user can still configure
+            var btn = document.getElementById('relaunchSetupBtn');
+            if (btn) btn.style.display = 'flex';
         });
     },
 
