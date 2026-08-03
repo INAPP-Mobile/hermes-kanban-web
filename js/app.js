@@ -68,11 +68,13 @@ var App = {
     // LLM Setup Wizard
     checkSetupStatus: function() {
         api('GET', '/api/status').then(function(s) {
-            if (!s.llm_configured) {
-                App.openSetupWizard();
-            }
+            var btn = document.getElementById('relaunchSetupBtn');
+            if (btn) btn.style.display = s.llm_configured ? 'none' : 'flex';  // show when unconfigured, hide after config complete
+            if (!s.llm_configured) App.openSetupWizard();
         }).catch(function(e) {
             console.warn('checkSetupStatus failed:', e);
+            var btn = document.getElementById('relaunchSetupBtn');
+            if (btn) btn.style.display = 'flex';  // show on error so user can retry
         });
     },
 
