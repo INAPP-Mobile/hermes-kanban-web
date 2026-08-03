@@ -2,7 +2,7 @@
 async function api(method, path, body) {
     var opts = { method: method, headers: { 'Content-Type': 'application/json' } };
     if (body) opts.body = JSON.stringify(body);
-    var res = await fetch('/api' + path, opts);
+    var res = await fetch((path.startsWith('/') ? '/api' : '/api/') + path, opts);
     if (!res.ok) throw new Error(await res.text());
     return res.json();
 }
