@@ -596,9 +596,16 @@ body {
   flex-shrink: 0;
 }
 /* Setup Wizard */
-.setup-modal { max-width: 520px; }
+.setup-modal { max-width: 520px; position: relative; overflow: visible; }
 .setup-hint { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5; margin-top: -8px; }
 .modal-icon { display: inline-block; margin-right: 6px; font-size: 20px; vertical-align: middle; }
+
+.close-btn {
+    position: absolute; top: 12px; right: 14px; background: none; border: none;
+    font-size: 22px; cursor: pointer; color: var(--text-secondary); padding: 4px 8px;
+    border-radius: 6px; line-height: 1; transition: all 0.15s;
+}
+.close-btn:hover { background: var(--bg-input); color: var(--text); }
 
 .provider-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .provider-option {
