@@ -8,23 +8,34 @@ var PROVIDERS = [
 ];
 
 App.renderProviderList = function() {
-    var html = '';
+    var html = '<div class="provider-grid">';
     PROVIDERS.forEach(function(p) {
-        html += '<div><label><input type="radio" name="provider" value="' + p.key + '" onchange="App.chooseProvider(' + JSON.stringify(p).replace(/"/g, '&quot;') + ')">' + p.label + '</label></div>';
+        var icon = p.key === 'ollama' ? '\u{1F916}' : p.key === 'openai' ? '\u2B50' : p.key === 'openrouter' ? '\u{1F310}' : '\u26AA';
+        html += '<div class="provider-option" onclick="App.chooseProvider(' + JSON.stringify(p).replace(/'/g, '&apos;') + ')">' +
+            '<span class="provider-radio"></span>' +
+            '<span class="provider-label">' + icon + '  ' + p.label + '</span>' +
+        '</div>';
     });
-    html += '<div id="providerFormArea"></div>';
+    html += '</div><div id="providerFormArea" style="margin-top:16px;"></div>';
     document.getElementById('setupWizardContent').innerHTML = html;
 };
 
 App.chooseProvider = function(p) {
-    var area = document.getElementById('setupWizardContent');
+    // Highlight selected provider card
+    document.querySelectorAll('.provider-option').forEach(function(el) { el.classList.remove('selected'); });
+    event.currentTarget.classList.add('selected');
+
+    var activeProfileName = document.getElementById('currentProfileLabel') ? document.getElementById('currentProfileLabel').textContent : 'default';
+    var area = document.getElementById('providerFormArea');
     area.innerHTML =
-        '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Configure provider for profile <b>' + (p.profile_name || 'default') + '</b> — used by the orchestrator.</p>' +
-        '<label>Base URL</label><input type="text" id="setupBaseUrl" value="' + p.default_url + '" style="width:100%;margin-bottom:8px;">' +
+        '<div class="setup-form">' +
+        (p.key === 'openrouter' ? '<p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">OpenRouter provides a unified API for 50+ models. Your key stays local.</p>' : '') +
+        '<label>Base URL</label><input type="text" id="setupBaseUrl" value="' + p.default_url.replace(/'/g, '&#39;') + '" style="width:100%;margin-bottom:8px;" placeholder="' + p.default_url + '">' +
         '<label>Model</label><input type="text" id="setupModel" placeholder="' + (p === PROVIDERS[0] ? 'e.g. qwen3:8b' : 'e.g. gpt-4o') + '" style="width:100%;margin-bottom:8px;">' +
-        (p.key !== 'ollama' ? '<label>API Key</label><input type="password" id="setupApiKey" style="width:100%;margin-bottom:8px;">' : '') +
-        '<label>Profile name</label><input type="text" id="setupProfile" value="default" style="width:100%;margin-bottom:8px;">' +
-        '<button onclick="App.saveSetup(\'' + p.key + '\')" class="btn-new-task" style="margin-top:12px;">Save &amp; Reload</button>';
+        (p.key !== 'ollama' ? '<label>API Key</label><input type="password" id="setupApiKey" style="width:100%;margin-bottom:12px;" placeholder="Enter your API key...">' : '') +
+        '<label>Profile Name</label><input type="text" id="setupProfile" value="' + activeProfileName + '" style="width:100%;margin-bottom:16px;">' +
+        '<button onclick="App.saveSetup(' + JSON.stringify(p.key).replace(/'/g, "&apos;") + ')" class="btn-save-setup">Save \u2022 Reload</button>' +
+        '</div>';
 };
 
 App.saveSetup = async function(providerKey) {
@@ -38,10 +49,14 @@ App.saveSetup = async function(providerKey) {
     if (!body.model) { toast('Model name is required', 'error'); return; }
     try {
         var resp = await api('POST', 'setup', body);
+        _setupComplete = true;
         toast('LLM configured! Reloading...', 'success');
-        App.closeSetupWizard();
+        window.App.closeSetupWizard();
         setTimeout(function() { location.reload(); }, 1500);
     } catch (e) {
+        _setupComplete = true; // show button on failure too so user can re-try
         toast('Setup failed: ' + e.message, 'error');
+        var btn = document.getElementById('relaunchSetupBtn');
+        if (btn) btn.style.display = 'flex';
     }
 };

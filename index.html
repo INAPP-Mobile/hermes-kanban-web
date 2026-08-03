@@ -29,6 +29,9 @@
     </div>
     <div class="stats" id="stats"></div>
     <button class="theme-toggle" id="themeToggle" onclick="App.toggleTheme()" title="Toggle dark mode">&#127769;</button>
+    <button id="relaunchSetupBtn" style="display:none;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;gap:4px;align-items:center;white-space:nowrap;" onclick="App.openSetupWizard()">
+      <span>&#9881;</span><span>Configure LLM</span>
+    </button>
 </div>
 
 <div class="board" id="board">
@@ -38,11 +41,11 @@
 <!-- Setup Wizard Modal (inserted after the #board div, line ~36) -->
 <!-- Reuses .modal-overlay/.modal CSS that detailModal already uses (css/styles.css:548+) -->
 <div class="modal-overlay" id="setupWizard">
-    <div class="modal" style="max-width: 560px;">
-        <h2>LLM Setup</h2>
-        <span class="close" onclick="App.closeSetupWizard()">&times;</span>
-        <div class="modal-body" id="setupWizardContent">
-        </div>
+    <div class="modal setup-modal">
+        <span class="close" onclick="App.closeSetupWizard()">&#215;</span>
+        <h2><span class="modal-icon">&#9881;</span><span>Configure LLM</span></h2>
+        <p class="setup-hint">Select your AI provider and enter credentials to enable the Hermes orchestrator.</p>
+        <div class="modal-body" id="setupWizardContent"></div>
     </div>
 </div>
 
@@ -174,16 +177,16 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="/assets/js/utils.js?v=8"></script>
-<script src="/assets/js/api.js?v=8"></script>
-<script src="/assets/js/theme.js?v=8"></script>
-<script src="/assets/js/boards.js?v=8"></script>
-<script src="/assets/js/profiles.js?v=8"></script>
-<script src="/assets/js/tasks.js?v=8"></script>
-<script src="/assets/js/detail.js?v=8"></script>
-<script src="/assets/js/dragdrop.js?v=8"></script>
-<script src="/assets/js/websocket.js?v=8"></script>
-<script src="/assets/js/app.js?v=8"></script>
-<script src="/assets/js/setup-wizard.js?v=8"></script>
+<script src="/assets/js/utils.js?v=9"></script>
+<script src="/assets/js/api.js?v=9"></script>
+<script src="/assets/js/theme.js?v=9"></script>
+<script src="/assets/js/boards.js?v=9"></script>
+<script src="/assets/js/profiles.js?v=9"></script>
+<script src="/assets/js/tasks.js?v=9"></script>
+<script src="/assets/js/detail.js?v=9"></script>
+<script src="/assets/js/dragdrop.js?v=9"></script>
+<script src="/assets/js/websocket.js?v=9"></script>
+<script src="/assets/js/app.js?v=9"></script>
+<script src="/assets/js/setup-wizard.js?v=9"></script>
 </body>
 </html>

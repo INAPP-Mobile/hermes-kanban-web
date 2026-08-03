@@ -9,6 +9,7 @@ var App = {
         loadModelOptions();
         connectEventStream();
         App.checkSetupStatus();
+        if (typeof App.initSetupTracker === 'function') App.initSetupTracker();
     },
 
     // Board
@@ -78,14 +79,32 @@ var App = {
 
     openSetupWizard: function() {
         document.getElementById('setupWizard').classList.add('active');
-        App.renderProviderList();
+        if (!document.body.querySelector('#providerFormArea')) App.renderProviderList();
     },
 
     closeSetupWizard: function() {
         document.getElementById('setupWizard').classList.remove('active');
+        var btn = document.getElementById('relaunchSetupBtn');
+        if (btn && _setupComplete) btn.style.display = 'flex';
     },
 };
+
+var _setupComplete = false;
 
 document.addEventListener('DOMContentLoaded', function() {
     App.init();
 });
+
+// --- Setup tracker: show relaunch button after first save attempt ---
+(function() {
+    var obs = new MutationObserver(function(mutations) {
+        mutations.forEach(function(m) {
+            if (m.addedNodes.length && m.addedNodes[0].id === 'setupBaseUrl') {
+                _setupComplete = true;
+                var btn = document.getElementById('relaunchSetupBtn');
+                if (btn) btn.title = 'LLM already configured \u2014 click to change settings';
+            }
+        });
+    });
+    obs.observe(document.getElementById('setupWizardContent'), { childList: true, subtree: true });
+})();
