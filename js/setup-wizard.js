@@ -11,19 +11,32 @@ App.renderProviderList = function() {
     var html = '<div class="provider-grid">';
     PROVIDERS.forEach(function(p) {
         var icon = p.key === 'ollama' ? '\u{1F916}' : p.key === 'openai' ? '\u2B50' : p.key === 'openrouter' ? '\u{1F310}' : '\u26AA';
-        html += '<div class="provider-option" onclick="App.chooseProvider(' + JSON.stringify(p).replace(/'/g, '&apos;') + ')">' +
+        html += '<div class="provider-option" data-provider-key="' + p.key + '">' +
             '<span class="provider-radio"></span>' +
             '<span class="provider-label">' + icon + '  ' + p.label + '</span>' +
         '</div>';
     });
     html += '</div><div id="providerFormArea" style="margin-top:16px;"></div>';
     document.getElementById('setupWizardContent').innerHTML = html;
+
+    // Delegate clicks via addEventListener for reliable event handling
+    var grid = document.querySelector('.provider-grid');
+    if (grid) {
+        grid.addEventListener('click', function(e) {
+            var card = e.target.closest('.provider-option');
+            if (!card) return;
+            var key = card.getAttribute('data-provider-key');
+            var p = PROVIDERS.find(function(r){ return r.key === key; });
+            if (p) App.chooseProvider(p, e);
+        });
+    }
 };
 
-App.chooseProvider = function(p) {
+App.chooseProvider = function(p, e) {
     // Highlight selected provider card
     document.querySelectorAll('.provider-option').forEach(function(el) { el.classList.remove('selected'); });
-    event.currentTarget.classList.add('selected');
+    var targetEl = e ? e.target.closest('.provider-option') : null;
+    if (targetEl) targetEl.classList.add('selected');
 
     var activeProfileName = document.getElementById('currentProfileLabel') ? document.getElementById('currentProfileLabel').textContent : 'default';
     var area = document.getElementById('providerFormArea');
@@ -34,7 +47,7 @@ App.chooseProvider = function(p) {
         '<label>Model</label><input type="text" id="setupModel" placeholder="' + (p === PROVIDERS[0] ? 'e.g. qwen3:8b' : 'e.g. gpt-4o') + '" style="width:100%;margin-bottom:8px;">' +
         (p.key !== 'ollama' ? '<label>API Key</label><input type="password" id="setupApiKey" style="width:100%;margin-bottom:12px;" placeholder="Enter your API key...">' : '') +
         '<label>Profile Name</label><input type="text" id="setupProfile" value="' + activeProfileName + '" style="width:100%;margin-bottom:16px;">' +
-        '<button onclick="App.saveSetup(' + JSON.stringify(p.key).replace(/'/g, "&apos;") + ')" class="btn-save-setup">Save \u2022 Reload</button>' +
+        '<button onclick="App.saveSetup(' + JSON.stringify(p.key).replace(/'/g, '&apos;') + ')" class="btn-save-setup">Save • Reload</button>' +
         '</div>';
 };
 

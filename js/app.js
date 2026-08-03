@@ -9,7 +9,6 @@ var App = {
         loadModelOptions();
         connectEventStream();
         App.checkSetupStatus();
-        if (typeof App.initSetupTracker === 'function') App.initSetupTracker();
     },
 
     // Board
@@ -68,53 +67,25 @@ var App = {
 
     // LLM Setup Wizard
     checkSetupStatus: function() {
-        api('GET', 'status').then(function(s) {
+        api('GET', '/api/status').then(function(s) {
             if (!s.llm_configured) {
                 App.openSetupWizard();
-                // Always show reconfigure button while still unconfigured so user can retry after wizard closes
-                var btn = document.getElementById('relaunchSetupBtn');
-                if (btn) { btn.style.display = 'flex'; btn.title = 'LLM not configured — click to set up'; }
-            } else {
-                // LLM already configured — show the reconfigure button immediately
-                var btn = document.getElementById('relaunchSetupBtn');
-                if (btn) { btn.style.display = 'flex'; btn.title = 'LLM configured — click to change settings'; }
             }
         }).catch(function(e) {
             console.warn('checkSetupStatus failed:', e);
-            // On error, show button so user can still configure
-            var btn = document.getElementById('relaunchSetupBtn');
-            if (btn) btn.style.display = 'flex';
         });
     },
 
     openSetupWizard: function() {
         document.getElementById('setupWizard').classList.add('active');
-        if (!document.body.querySelector('#providerFormArea')) App.renderProviderList();
+        App.renderProviderList();
     },
 
     closeSetupWizard: function() {
         document.getElementById('setupWizard').classList.remove('active');
-        var btn = document.getElementById('relaunchSetupBtn');
-        if (btn && _setupComplete) btn.style.display = 'flex';
     },
 };
-
-var _setupComplete = false;
 
 document.addEventListener('DOMContentLoaded', function() {
     App.init();
 });
-
-// --- Setup tracker: show relaunch button after first save attempt ---
-(function() {
-    var obs = new MutationObserver(function(mutations) {
-        mutations.forEach(function(m) {
-            if (m.addedNodes.length && m.addedNodes[0].id === 'setupBaseUrl') {
-                _setupComplete = true;
-                var btn = document.getElementById('relaunchSetupBtn');
-                if (btn) btn.title = 'LLM already configured \u2014 click to change settings';
-            }
-        });
-    });
-    obs.observe(document.getElementById('setupWizardContent'), { childList: true, subtree: true });
-})();
