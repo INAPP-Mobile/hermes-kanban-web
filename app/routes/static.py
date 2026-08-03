@@ -21,8 +21,7 @@ def _nocache_headers():
 
 @router.get("/favicon.ico")
 def favicon():
-    # Serve favicon.png (FastAPI will infer JPEG-like PNG response)
-    return FileResponse(os.path.join(STATIC_DIR, "favicon.png"), media_type="image/png")
+    return FileResponse(os.path.join(STATIC_DIR, "static/favicon.png"), media_type="image/png")
 
 
 @router.get("/assets/{file_path:path}")
