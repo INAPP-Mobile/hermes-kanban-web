@@ -92,5 +92,9 @@ var App = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Wire up relaunch button (no inline handler elsewhere)
+    var relaunchBtn = document.getElementById('relaunchSetupBtn');
+    if (relaunchBtn) relaunchBtn.addEventListener('click', App.openSetupWizard);
+
     App.init();
 });
