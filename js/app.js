@@ -67,7 +67,7 @@ var App = {
 
     // LLM Setup Wizard
     checkSetupStatus: function() {
-        api('GET', '/api/status').then(function(s) {
+        api('GET', 'status').then(function(s) {
             if (!s.llm_configured) {
                 App.openSetupWizard();
             }

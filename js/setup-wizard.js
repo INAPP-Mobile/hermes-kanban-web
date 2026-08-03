@@ -37,7 +37,7 @@ App.saveSetup = async function(providerKey) {
     };
     if (!body.model) { toast('Model name is required', 'error'); return; }
     try {
-        var resp = await api('POST', '/api/setup', body);
+        var resp = await api('POST', 'setup', body);
         toast('LLM configured! Reloading...', 'success');
         App.closeSetupWizard();
         setTimeout(function() { location.reload(); }, 1500);
