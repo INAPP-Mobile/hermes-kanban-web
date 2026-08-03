@@ -69,12 +69,15 @@ var App = {
     checkSetupStatus: function() {
         api('GET', '/api/status').then(function(s) {
             var btn = document.getElementById('relaunchSetupBtn');
-            if (btn) btn.style.display = s.llm_configured ? 'none' : 'flex';  // show when unconfigured, hide after config complete
+            if (btn) {
+                btn.style.display = 'flex';  // always show so user can reconfigure anytime
+                btn.title = s.llm_configured ? 'Change LLM configuration' : 'Configure LLM';
+            }
             if (!s.llm_configured) App.openSetupWizard();
         }).catch(function(e) {
             console.warn('checkSetupStatus failed:', e);
             var btn = document.getElementById('relaunchSetupBtn');
-            if (btn) btn.style.display = 'flex';  // show on error so user can retry
+            if (btn) { btn.style.display = 'flex'; btn.title = 'Configure LLM'; }
         });
     },
 
