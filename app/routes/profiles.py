@@ -137,7 +137,13 @@ def list_profiles():
     if os.path.exists(HERMES_CONFIG_PATH):
         with open(HERMES_CONFIG_PATH, "r") as f:
             root_cfg = yaml.safe_load(f) or {}
-        root_model = root_cfg.get("model", {}).get("default", "\u2014")
+        model_val = root_cfg.get("model")
+        if isinstance(model_val, dict):
+            root_model = model_val.get("default", "—")
+        elif isinstance(model_val, str) and model_val.strip():
+            root_model = model_val.strip()
+        else:
+            root_model = "—"
         if not any(p["name"] == "default" for p in profiles):
             profiles.insert(0, {"name": "default", "model": root_model, "alias": ""})
     return profiles
