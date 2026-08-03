@@ -19,6 +19,11 @@ def _nocache_headers():
     }
 
 
+@router.get("/favicon.ico")
+def favicon():
+    return FileResponse(os.path.join(STATIC_DIR, "favicon.ico"), media_type="image/x-icon")
+
+
 @router.get("/assets/{file_path:path}")
 def serve_static(file_path: str):
     full_path = os.path.join(STATIC_DIR, file_path)
