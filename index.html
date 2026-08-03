@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
 <title>Hermes Kanban Web</title>
 <link rel="stylesheet" href="/assets/css/styles.css">
 <script>try{var t=localStorage.getItem('kanban-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}</script>
@@ -28,82 +29,59 @@
         </div>
     </div>
     <div class="stats" id="stats"></div>
-    <button class="theme-toggle" id="themeToggle" onclick="App.toggleTheme()" title="Toggle dark mode">&#127769;</button>
-    <button id="relaunchSetupBtn" style="display:none;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;gap:4px;align-items:center;white-space:nowrap;" onclick="App.openSetupWizard()">
-      <span>&#9881;</span><span>Configure LLM</span>
-    </button>
 </div>
 
-<div class="board" id="board">
-    <div class="loading">Loading...</div>
-</div>
-
-<!-- Setup Wizard Modal (inserted after the #board div, line ~36) -->
-<!-- Reuses .modal-overlay/.modal CSS that detailModal already uses (css/styles.css:548+) -->
-<div class="modal-overlay" id="setupWizard">
-    <div class="modal setup-modal">
-        <span class="close" onclick="App.closeSetupWizard()">&#215;</span>
-        <h2><span class="modal-icon">&#9881;</span><span>Configure LLM</span></h2>
-        <p class="setup-hint">Select your AI provider and enter credentials to enable the Hermes orchestrator.</p>
-        <div class="modal-body" id="setupWizardContent"></div>
+<div class="main-container">
+    <div class="board" id="kanbanBoard"></div>
+    <div class="sidebar" id="detailPanel">
+        <div class="empty-state">Select a task to view details</div>
     </div>
 </div>
 
-<!-- Task Detail Modal -->
-<div class="modal-overlay" id="detailModal">
-    <div class="modal">
-        <h2 id="detailTitle">Task Detail</h2>
-        <div class="modal-body-full" id="detailContent"></div>
-        <div id="detailActions" class="modal-actions"></div>
-    </div>
-</div>
-
-<!-- Unified Task Modal (Create / Edit) -->
+<!-- Task Modal -->
 <div class="modal-overlay" id="taskModal">
     <div class="modal">
-        <h2 id="taskModalTitle">New Task</h2>
-        <div class="modal-body">
-        <div class="field"><label>Title</label><input id="taskTitle" placeholder="Task title..."></div>
-        <div class="field"><label>Body / Instructions</label><textarea id="taskBody" placeholder="Full task description..."></textarea></div>
-        <div class="field"><label>Assignee</label><select id="taskAssignee"></select></div>
-        <div class="field"><label>Working Folder</label><input id="taskWorkdir" placeholder="/path/to/project (leave empty for scratch)"></div>
-        <div class="field"><label>Priority</label><input id="taskPriority" type="number" value="0" min="0" max="10"></div>
-        <div class="field"><label>Goal Mode</label><select id="taskGoalMode"><option value="false">No</option><option value="true">Yes</option></select></div>
-        <div class="field"><label>Parent Task IDs</label><input id="taskParents" placeholder="t_abc123, t_def456 (comma-separated, optional)"></div>
-        <div class="field"><label>Child Task IDs</label><input id="taskChildren" placeholder="t_abc123, t_def456 (comma-separated, optional)"></div>
+        <h2><span class="modal-icon">&#9998;</span><span id="taskModalTitle">Edit Task</span></h2>
+        <div class="modal-body-full">
+            <input type="hidden" id="taskId">
+            <div class="field"><label>Title *</label><input id="taskTitle" placeholder="Task title..."></div>
+            <div class="field"><label>Description</label><textarea id="taskDesc" placeholder="Description (markdown supported)..."></textarea></div>
+            <div class="field"><label>Status</label>
+                <select id="taskStatus">
+                    <option value="backlog">Backlog</option>
+                    <option value="todo">To Do</option>
+                    <option value="inprogress">In Progress</option>
+                    <option value="done">Done</option>
+                    <option value="blocked">Blocked</option>
+                </select>
+            </div>
+            <div class="field"><label>Board</label>
+                <select id="taskBoard"></select>
+            </div>
+            <div class="field"><label>Promoted To Hermes Agent</label>
+                <input type="checkbox" id="taskPromote">
+                <span class="help-text">When checked, this task will be promoted to the corresponding agent status.</span>
+            </div>
         </div>
-        <div class="modal-actions">
-            <button onclick="App.closeTaskModal()" class="btn-cancel">Cancel</button>
-            <button onclick="App.submitTaskModal()" class="btn-primary" id="taskModalSubmit">Create</button>
-        </div>
+        <div id="taskActions" class="modal-actions"></div>
+    </div>
+</div>
+
+<!-- Detail Modal (moved outside main) -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal">
+        <h2><span class="modal-icon">&#128196;</span><span>Edit Task</span></h2>
+        <div class="modal-body-full" id="detailContent"></div>
+        <div id="detailActions" class="modal-actions"></div>
     </div>
 </div>
 
 <!-- Create Board Modal -->
 <div class="modal-overlay" id="createBoardModal">
     <div class="modal">
-        <h2>New Board</h2>
-        <div class="field"><label>Board Slug</label><input id="newBoardSlug" placeholder="my-project"></div>
-        <div class="field"><label>Working Folder</label><input id="newBoardWorkdir" placeholder="/path/to/project (optional)"></div>
-        <p class="hint">Only lowercase letters, numbers, hyphens, underscores for the slug. Working folder is the default path for new tasks on this board. Leave empty for scratch workspace.</p>
-        <div class="modal-actions">
-            <button onclick="App.closeCreateBoardModal()" class="btn-cancel">Cancel</button>
-            <button onclick="App.submitCreateBoard()" class="btn-primary">Create</button>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Board Modal -->
-<div class="modal-overlay" id="editBoardModal">
-    <div class="modal">
-        <h2>Edit Board</h2>
-        <div class="field"><label>Board Slug</label><input id="editBoardSlug" placeholder="my-board"></div>
-        <div class="field"><label>Default Workdir</label><input id="editBoardWorkdir" placeholder="/tmp/work (optional)"></div>
-        <p class="hint">Only lowercase letters, numbers, hyphens, underscores for the slug.</p>
-        <div class="modal-actions">
-            <button onclick="App.closeEditBoardModal()" class="btn-cancel">Cancel</button>
-            <button onclick="App.submitEditBoard()" class="btn-primary">Save</button>
-        </div>
+        <h2>Add New Board</h2>
+        <div class="field"><label>Board Name *</label><input type="text" id="newBoardName" placeholder="e.g., Releases"></div>
+        <div class="field"><label>Slug (auto-lowered)</label><input type="text" id="newBoardSlug" readonly></div>
     </div>
 </div>
 
@@ -111,72 +89,35 @@
 <div class="modal-overlay" id="deleteBoardModal">
     <div class="modal">
         <h2>Delete Board</h2>
-        <p>Are you sure you want to permanently delete board <strong id="deleteBoardName"></strong>?</p>
-        <p class="warning">This removes the database, workspaces, and logs. This cannot be undone.</p>
-        <div class="modal-actions">
-            <button onclick="App.closeDeleteBoardModal()" class="btn-cancel">Cancel</button>
-            <button onclick="App.submitDeleteBoard()" class="btn-danger">Delete</button>
-        </div>
+        <p id="deleteBoardMsg"></p>
+        <button onclick="confirmDeleteBoard(false)" style="background:#6c757d;">Cancel</button>
+        <button onclick="submitDeleteBoard()" style="background:#dc3545;">Delete</button>
     </div>
+    <script src="/assets/js/boards.js?v=10"></script>
 </div>
 
-<!-- Edit Profile Modal -->
-<div class="modal-overlay" id="editProfileModal">
-    <div class="modal">
-        <h2>Edit Profile</h2>
-        <div class="field"><label>Profile Name</label><input id="editProfileName" placeholder="my-worker"></div>
-        <div class="field"><label>Model</label><select id="editProfileModel"><option value="">-- default --</option></select></div>
-        <div class="field"><label>Description</label><input id="editProfileDesc" placeholder="What this profile is good at..."></div>
-        <div class="modal-actions">
-            <button onclick="App.closeEditProfileModal()" class="btn-cancel">Cancel</button>
-            <button onclick="App.submitEditProfile()" class="btn-primary">Save</button>
-        </div>
-    </div>
-</div>
-
-<!-- Create Profile Modal -->
-<div class="modal-overlay" id="createProfileModal">
-    <div class="modal">
-        <h2>New Profile</h2>
-        <div class="field"><label>Profile Name</label><input id="newProfileName" placeholder="my-worker"></div>
-        <div class="field"><label>Model</label><select id="newProfileModel"><option value="">-- default --</option></select></div>
-        <div class="field"><label>Description</label><input id="newProfileDesc" placeholder="What this profile is good at..."></div>
-        <div class="field"><label>Clone From</label><select id="newProfileClone"><option value="">-- none --</option></select></div>
-        <div class="modal-actions">
-            <button onclick="App.closeCreateProfileModal()" class="btn-cancel">Cancel</button>
-            <button onclick="App.submitCreateProfile()" class="btn-primary">Create</button>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Profile Modal -->
-<div class="modal-overlay" id="deleteProfileModal">
-    <div class="modal">
-        <h2>Delete Profile</h2>
-        <p>Are you sure you want to permanently delete profile <strong id="deleteProfileName"></strong>?</p>
-        <p class="warning">This removes the profile and all its state. This cannot be undone.</p>
-        <div class="modal-actions">
-            <button onclick="App.closeDeleteProfileModal()" class="btn-cancel">Cancel</button>
-            <button onclick="App.submitDeleteProfile()" class="btn-danger">Delete</button>
-        </div>
-    </div>
-</div>
-
-<!-- Generic Confirm Modal -->
+<!-- Confirm Modal -->
 <div class="modal-overlay" id="confirmModal">
-    <div class="modal" style="max-width:400px;">
-        <h2 id="confirmTitle">Confirm</h2>
-        <div id="confirmMessage"></div>
-        <div class="modal-actions">
-            <button id="confirmCancelBtn" class="btn-cancel">Cancel</button>
-            <button id="confirmOkBtn" class="btn-primary">OK</button>
-        </div>
+    <div class="modal">
+        <h2><span id="confirmTitle"></span></h2>
+        <p id="confirmMessage"></p>
+        <button onclick="closeConfirmModal(false)">Cancel</button>
+        <button onclick="closeConfirmModal(true)" id="confirmOkBtn">OK</button>
     </div>
 </div>
 
+<!-- Setup Wizard Modal -->
+<div class="modal-overlay" id="setupWizard">
+    <div class="modal setup-modal">
+        <h2><span class="modal-icon">&#9881;</span><span>Configure LLM</span></h2>
+        <button class="close-btn" onclick="App.closeSetupWizard()">&times;</button>
+        <div class="modal-body" id="setupWizardContent"></div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
 <div class="toast" id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="/assets/js/utils.js?v=10"></script>
 <script src="/assets/js/api.js?v=10"></script>
 <script src="/assets/js/theme.js?v=10"></script>
@@ -186,7 +127,11 @@
 <script src="/assets/js/detail.js?v=10"></script>
 <script src="/assets/js/dragdrop.js?v=10"></script>
 <script src="/assets/js/websocket.js?v=10"></script>
-<script src="/assets/js/app.js?v=10"></script>
 <script src="/assets/js/setup-wizard.js?v=10"></script>
+<script src="/assets/js/app.js?v=10"></script>
+
+<!-- Hermes Agent Integration -->
+<iframe id="canvasFrame" style="display:none;" height="0" width="0"></iframe>
+
 </body>
 </html>
