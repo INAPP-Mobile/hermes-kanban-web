@@ -3,7 +3,8 @@ var allProfiles = [];
 
 function renderProfileDropdown() {
     var menu = document.getElementById('profileDropdownMenu');
-    var current = App.activeProfile || 'worker3';
+    var current = allProfiles.length ? App.activeProfile : 'default';
+    if (!allProfiles.some(function(p) { return p.name === current; })) current = 'default';
     var html = '';
     allProfiles.forEach(function(p) {
         var label = p.name;
@@ -171,6 +172,8 @@ async function loadProfiles() {
         renderProfileDropdown();
     } catch (e) {
         console.error('Failed to load profiles:', e);
+        allProfiles = []; // fall back, so renderProfileDropdown shows "default" label
+        document.getElementById('currentProfileLabel').textContent = 'default';
     }
 }
 

@@ -1,6 +1,6 @@
 // --- App Namespace & Init ---
 var App = {
-    activeProfile: 'worker3',
+    activeProfile: 'default', // resolved to real first profile once loaded
 
     init: function() {
         initTheme();

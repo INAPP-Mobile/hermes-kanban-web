@@ -16,9 +16,11 @@ async function loadBoards() {
             document.getElementById('board').innerHTML =
                 '<div class="empty-state">' +
                 '<p>No boards yet — create your first board to get started.</p>' +
-                '<button class="btn-new-task" onclick="App.openCreateBoardModal()">+ Create Board</button>' +
+                '<button class="btn-new-task" onclick="App.openCreateBoardModal()">&#43; Create Board</button>' +
                 '</div>';
-            return;
+            // Update profile label since no board orchestrator-profile is available
+            document.getElementById('currentProfileLabel').textContent = allProfiles.length ? App.activeProfile : 'default';
+            return; // profiles already rendered by loadProfiles(); do nothing more
         }
         loadTasks(currentBoard);
         api('GET', '/boards/' + currentBoard + '/orchestrator-profile').then(function(resp) {
