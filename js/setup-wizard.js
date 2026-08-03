@@ -64,6 +64,8 @@ App.saveSetup = async function(providerKey) {
         var resp = await api('POST', 'setup', body);
         _setupComplete = true;
         toast('LLM configured! Reloading...', 'success');
+        var btn = document.getElementById('relaunchSetupBtn');
+        if (btn) btn.style.display = 'none';  // hide after successful config
         window.App.closeSetupWizard();
         setTimeout(function() { location.reload(); }, 1500);
     } catch (e) {
