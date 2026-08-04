@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico" type="image/png">
 <title>Hermes Kanban Web</title>
-<link rel="stylesheet" href="/assets/css/styles.css?v=16">
+<link rel="stylesheet" href="/assets/css/styles.css?v=20">
 <script>try{var t=localStorage.getItem('kanban-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}</script>
 </head>
 <body>
@@ -96,38 +96,50 @@
 
 <!-- Create Board Modal -->
 <div class="modal-overlay" id="createBoardModal">
-    <div class="modal">
-        <h2>Add New Board</h2>
-        <div class="field"><label>Board Name *</label><input type="text" id="newBoardName" placeholder="e.g., Releases"></div>
-        <div class="field"><label>Slug (auto-lowered)</label><input type="text" id="newBoardSlug" readonly></div>
+    <div class="modal setup-modal modal-create-board">
+        <h2><span class="modal-icon">&#128196;</span><span>Add New Board</span></h2>
+        <button class="close-btn" onclick="App.closeCreateBoardModal()">&times;</button>
+        <p class="setup-hint">Boards organize tasks by project. One board can serve as a Kanban pipeline, sprint backlog, or any workflow you need.</p>
+        <div class="modal-body">
+            <div class="field"><label>Board Name *</label><input type="text" id="newBoardName" placeholder="e.g., Releases"></div>
+            <div class="field slug-preview-field"><label>Suggested Slug</label><input type="text" id="newBoardSlug" readonly></div>
+        </div>
         <div class="modal-actions">
-            <button onclick="closeCreateBoardModal()">Cancel</button>
- <button onclick="submitCreateBoard()" style="background:#0ea5e9;">Create</button>
+            <button onclick="App.closeCreateBoardModal()">Cancel</button>
+            <button onclick="App.submitCreateBoard()" style="background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">&plus; Create Board</button>
         </div>
     </div>
 </div>
 
 <!-- Edit Board Modal -->
 <div class="modal-overlay" id="editBoardModal">
-    <div class="modal">
-        <h2>Edit Board</h2>
-        <div class="field"><label>New Slug *</label><input type="text" id="editBoardSlug"></div>
-        <div class="field"><label>Default Workspace Path</label><input type="text" id="editBoardWorkdir" placeholder="/optional/path"></div>
-    </div>
-    <div class="modal-actions">
-        <button onclick="closeEditBoardModal()">Cancel</button>
-        <button onclick="submitEditBoard()" style="background:#0ea5e9;">Save Changes</button>
+    <div class="modal setup-modal modal-edit-board">
+        <h2><span class="modal-icon">&#9998;</span><span>Edit Board</span></h2>
+        <button class="close-btn" onclick="App.closeEditBoardModal()">&times;</button>
+        <p class="setup-hint">Update slug or workspace path. Changing the slug updates all related task references.</p>
+        <div class="modal-body">
+            <div class="field"><label>New Slug *</label><input type="text" id="editBoardSlug"></div>
+            <div class="field"><label>Default Workspace Path</label><input type="text" id="editBoardWorkdir" placeholder="/optional/path"></div>
+        </div>
+        <div class="modal-actions">
+            <button onclick="App.closeEditBoardModal()">Cancel</button>
+            <button onclick="App.submitEditBoard()" style="background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">Save Changes</button>
+        </div>
     </div>
 </div>
 
 <!-- Delete Board Modal -->
 <div class="modal-overlay" id="deleteBoardModal">
-    <div class="modal">
-        <h2>Delete Board</h2>
-        <p>The board <strong id="deleteBoardName"></strong> will be permanently deleted along with all its tasks. This action cannot be undone.</p>
+    <div class="modal setup-modal modal-delete-board">
+        <h2><span class="modal-icon">&#128683;</span><span>Delete Board</span></h2>
+        <button class="close-btn" onclick="App.closeDeleteBoardModal()">&times;</button>
+        <div class="modal-body">
+            <p style="color:var(--text-warning);font-weight:bold;margin-bottom:12px;">This action cannot be undone.</p>
+            <p>The board <strong id="deleteBoardName"></strong> will be permanently deleted along with all its tasks and comments.</p>
+        </div>
         <div class="modal-actions">
-            <button onclick="closeDeleteBoardModal()">Cancel</button>
-            <button onclick="submitDeleteBoard()" style="background:#dc3545;">Delete Board</button>
+            <button onclick="App.closeDeleteBoardModal()">Cancel</button>
+            <button onclick="App.submitDeleteBoard()" style="background:#dc3545;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">Delete Board</button>
         </div>
     </div>
 </div>

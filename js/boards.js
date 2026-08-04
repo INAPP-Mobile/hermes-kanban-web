@@ -2,6 +2,13 @@
 var allBoards = [];
 var BOARD_SLUG = new URLSearchParams(window.location.search).get('board') || '';
 
+function autoFillBoardSlug() {
+    var nameEl = document.getElementById('newBoardName');
+    var slugEl = document.getElementById('newBoardSlug');
+    if (!nameEl || !slugEl) return;
+    slugEl.value = nameEl.value.trim().toLowerCase().replace(/[^a-z0-9\s_-]/g, '').replace(/\s+/g, '-');
+}
+
 async function loadBoards() {
     try {
         allBoards = await api('GET', '/boards');
@@ -38,6 +45,7 @@ async function loadBoards() {
 
 function renderBoardDropdown() {
     var menu = document.getElementById('boardDropdownMenu');
+    if (!menu) return;
     var currentBoard = BOARD_SLUG || (allBoards[0] ? allBoards[0].slug : '');
     var html = '';
     allBoards.forEach(function(b) {
@@ -58,6 +66,13 @@ function renderBoardDropdown() {
 function toggleBoardDropdown() {
     var menu = document.getElementById('boardDropdownMenu');
     if (!menu) return;
+    // If any modal is open, bail out — don't close it on outside clicks
+    var anyModalActive = document.querySelector('.modal-overlay.active');
+    if (anyModalActive) {
+        menu.style.display = 'none';
+        document.removeEventListener('click', closeBoardDropdownOnOutside);
+        return;
+    }
     var isOpen = menu.style.display === 'block';
     if (isOpen) {
         menu.style.display = 'none';
@@ -74,13 +89,13 @@ function toggleBoardDropdown() {
 
 function closeBoardDropdownOnOutside(e) {
     if (!e || !e.target) return;
-    // If a modal is now open, don't close dropdown (the click was intentional to open modal)
+    // If a modal is now open, detach listener and leave dropdown alone
     var anyModalActive = document.querySelector('.modal-overlay.active');
     if (anyModalActive) {
+        menu.style.display = 'none';
         document.removeEventListener('click', closeBoardDropdownOnOutside);
         return;
     }
-    var menu = document.getElementById('boardDropdownMenu');
     var btn = document.getElementById('boardDropdownBtn');
     if (!menu.contains(e.target) && !btn.contains(e.target)) {
         menu.style.display = 'none';
@@ -98,11 +113,14 @@ function openCreateBoardModal() {
     }
     try { document.getElementById('newBoardSlug').value = ''; } catch(e) {}
     try { document.getElementById('newBoardWorkdir').value = ''; } catch(e) {}
-    document.getElementById('createBoardModal').classList.add('active');
+    try { autoFillBoardSlug(); } catch(e) {}
+    var modalEl = document.getElementById('createBoardModal');
+    if (modalEl) modalEl.classList.add('active');
 }
 
 function closeCreateBoardModal() {
-    document.getElementById('createBoardModal').classList.remove('active');
+    var modalEl = document.getElementById('createBoardModal');
+    if (modalEl) modalEl.classList.remove('active');
     try { document.getElementById('newBoardSlug').value = ''; } catch(e) {}
     try { document.getElementById('newBoardWorkdir').value = ''; } catch(e) {}
 }
