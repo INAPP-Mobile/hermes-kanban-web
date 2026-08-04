@@ -146,40 +146,54 @@
 
 <!-- Create Profile Modal -->
 <div class="modal-overlay" id="createProfileModal">
-    <div class="modal">
-        <h2>Create New Orchestrator Profile</h2>
-        <div class="field"><label>Profile Name *</label><input type="text" id="newProfileName" placeholder="e.g., coder-mike"></div>
-        <div class="field"><label>Description</label><input type="text" id="newProfileDesc" placeholder="Optional description..."></div>
-        <div class="field"><label>LLM Model</label><select id="newProfileModel"></select></div>
-        <div class="field"><label>Clone From Existing Profile</label><select id "newProfileClone"><option value="">-- none --</option></select></div>
-    </div>
-    <div class="modal-actions">
-        <button onclick="closeCreateProfileModal()">Cancel</button>
-        <button onclick="submitCreateProfile()" style="background:#0ea5e9;">Create</button>
+    <div class="modal setup-modal">
+        <h2><span class="modal-icon">&#128100;</span><span>Create New Profile</span></h2>
+        <button class="close-btn" onclick="App.closeCreateProfileModal()">&times;</button>
+        <p class="setup-hint">Profiles group LLM models and settings per board. Create one for each AI workflow or agent persona you need.</p>
+        <div class="modal-body">
+            <div class="field"><label>Profile Name *</label><input type="text" id="newProfileName" placeholder="e.g., coder-mike"></div>
+            <div class="field"><label>Description</label><input type="text" id="newProfileDesc" placeholder="Optional description..."></div>
+            <div class="field"><label>LLM Model</label><select id="newProfileModel"></select></div>
+            <div class="field"><label>Clone From Existing Profile</label><select id="newProfileClone"><option value="">-- none --</option></select></div>
+        </div>
+        <div class="modal-actions">
+            <button onclick="App.closeCreateProfileModal()">Cancel</button>
+            <button onclick="App.submitCreateProfile()" style="background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">&plus; Create Profile</button>
+        </div>
     </div>
 </div>
 
 <!-- Edit Profile Modal -->
 <div class="modal-overlay" id="editProfileModal">
-    <div class="modal">
-        <h2>Edit Orchestrator Profile</h2>
-        <div class="field"><label>New Profile Name *</label><input type="text" id="editProfileName"></div>
-        <div class="field"><label>Description</label><input type="text" id="editProfileDesc" placeholder="Optional description..."></div>
-        <div class="field"><label>LLM Model</label><select id="editProfileModel"></select></div>
-        <button onclick="closeEditProfileModal()" style="margin-right:8px;">Cancel</button>
-        <button onclick="submitEditProfile()" style="background:#0ea5e9;">Save Changes</button>
+    <div class="modal setup-modal">
+        <h2><span class="modal-icon">&#9998;</span><span>Edit Profile</span></h2>
+        <button class="close-btn" onclick="App.closeEditProfileModal()">&times;</button>
+        <p class="setup-hint">Update profile name, description, model, or workspace path.</p>
+        <div class="modal-body">
+            <div class="field"><label>New Profile Name *</label><input type="text" id="editProfileName"></div>
+            <div class="field"><label>Description</label><input type="text" id="editProfileDesc" placeholder="Optional description..."></div>
+            <div class="field"><label>LLM Model</label><select id="editProfileModel"></select></div>
+        </div>
+        <div class="modal-actions">
+            <button onclick="App.closeEditProfileModal()">Cancel</button>
+            <button onclick="App.submitEditProfile()" style="background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">Save Changes</button>
+        </div>
     </div>
 </div>
 
 <!-- Delete Profile Modal -->
 <div class="modal-overlay" id="deleteProfileModal">
-    <div class="modal">
-        <h2>Delete Orchestrator Profile</h2>
-        <p>The orchestrator profile "<strong id="deleteProfileName"></strong>" will be permanently deleted.</p>
-        <p style="color:#dc3545;font-weight:bold;">If this is the active profile, it cannot be deleted.</p>
+    <div class="modal setup-modal">
+        <h2><span class="modal-icon">&#128683;</span><span>Delete Profile</span></h2>
+        <button class="close-btn" onclick="App.closeDeleteProfileModal()">&times;</button>
+        <div class="modal-body">
+            <p style="color:var(--text-warning);font-weight:bold;margin-bottom:12px;">This action cannot be undone.</p>
+            <p>The profile "<strong id="deleteProfileName"></strong>" will be permanently deleted.</p>
+            <p>If this is the active profile, it cannot be deleted.</p>
+        </div>
         <div class="modal-actions">
-            <button onclick="closeDeleteProfileModal()">Cancel</button>
-            <button onclick="submitDeleteProfile()" style="background:#dc3545;">Delete</button>
+            <button onclick="App.closeDeleteProfileModal()">Cancel</button>
+            <button onclick="App.submitDeleteProfile()" style="background:#dc3545;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">Delete Profile</button>
         </div>
     </div>
 </div>
@@ -206,17 +220,17 @@
 <!-- Toast Notification -->
 <div class="toast" id="toast"></div>
 
-<script src="/assets/js/utils.js?v=16"></script>
-<script src="/assets/js/api.js?v=16"></script>
-<script src="/assets/js/theme.js?v=16"></script>
-<script src="/assets/js/boards.js?v=20"></script>
-<script src="/assets/js/profiles.js?v=16"></script>
-<script src="/assets/js/tasks.js?v=16"></script>
-<script src="/assets/js/detail.js?v=17"></script>
-<script src="/assets/js/dragdrop.js?v=16"></script>
-<script src="/assets/js/websocket.js?v=16"></script>
-<script src="/assets/js/app.js?v=19"></script>
-<script src="/assets/js/setup-wizard.js?v=18"></script>
+<script src="/assets/js/utils.js?v=21"></script>
+<script src="/assets/js/api.js?v=21"></script>
+<script src="/assets/js/theme.js?v=21"></script>
+<script src="/assets/js/boards.js?v=21"></script>
+<script src="/assets/js/profiles.js?v=21"></script>
+<script src="/assets/js/tasks.js?v=21"></script>
+<script src="/assets/js/detail.js?v=21"></script>
+<script src="/assets/js/dragdrop.js?v=21"></script>
+<script src="/assets/js/websocket.js?v=21"></script>
+<script src="/assets/js/app.js?v=21"></script>
+<script src="/assets/js/setup-wizard.js?v=21"></script>
 
 <!-- Hermes Agent Integration -->
 <iframe id="canvasFrame" style="display:none;" height="0" width="0"></iframe>
