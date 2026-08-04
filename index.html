@@ -101,7 +101,7 @@
         <button class="close-btn" onclick="App.closeCreateBoardModal()">&times;</button>
         <p class="setup-hint">Boards organize tasks by project. One board can serve as a Kanban pipeline, sprint backlog, or any workflow you need.</p>
         <div class="modal-body">
-            <div class="field"><label>Board Name *</label><input type="text" id="newBoardName" placeholder="e.g., Releases"></div>
+            <div class="field"><label>Board Name *</label><input type="text" id="newBoardName" placeholder="e.g., Releases" oninput="autoFillBoardSlug()"></div>
             <div class="field slug-preview-field"><label>Suggested Slug</label><input type="text" id="newBoardSlug" readonly></div>
         </div>
         <div class="modal-actions">
@@ -223,7 +223,7 @@
 <script src="/assets/js/utils.js?v=21"></script>
 <script src="/assets/js/api.js?v=21"></script>
 <script src="/assets/js/theme.js?v=21"></script>
-<script src="/assets/js/boards.js?v=21"></script>
+<script src="/assets/js/boards.js?v=23"></script>
 <script src="/assets/js/profiles.js?v=21"></script>
 <script src="/assets/js/tasks.js?v=21"></script>
 <script src="/assets/js/detail.js?v=21"></script>

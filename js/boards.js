@@ -118,12 +118,16 @@ function openCreateBoardModal() {
     if (modalEl) modalEl.classList.add('active');
 }
 
+App.closeCreateBoardModal = closeCreateBoardModal;
+
 function closeCreateBoardModal() {
     var modalEl = document.getElementById('createBoardModal');
     if (modalEl) modalEl.classList.remove('active');
     try { document.getElementById('newBoardSlug').value = ''; } catch(e) {}
     try { document.getElementById('newBoardWorkdir').value = ''; } catch(e) {}
 }
+
+App.submitCreateBoard = submitCreateBoard;
 
 async function submitCreateBoard() {
     var slug = (document.getElementById('newBoardSlug') || document.getElementById('newBoardName')).value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
