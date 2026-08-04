@@ -57,12 +57,15 @@ function renderBoardDropdown() {
 
 function toggleBoardDropdown() {
     var menu = document.getElementById('boardDropdownMenu');
+    if (!menu) return;
     var isOpen = menu.style.display === 'block';
     if (isOpen) {
         menu.style.display = 'none';
         document.removeEventListener('click', closeBoardDropdownOnOutside);
     } else {
         menu.style.display = 'block';
+        // Remove stale listener first, then add fresh one so we always have exactly one
+        document.removeEventListener('click', closeBoardDropdownOnOutside);
         setTimeout(function() {
             document.addEventListener('click', closeBoardDropdownOnOutside);
         }, 10);
@@ -70,6 +73,13 @@ function toggleBoardDropdown() {
 }
 
 function closeBoardDropdownOnOutside(e) {
+    if (!e || !e.target) return;
+    // If a modal is now open, don't close dropdown (the click was intentional to open modal)
+    var anyModalActive = document.querySelector('.modal-overlay.active');
+    if (anyModalActive) {
+        document.removeEventListener('click', closeBoardDropdownOnOutside);
+        return;
+    }
     var menu = document.getElementById('boardDropdownMenu');
     var btn = document.getElementById('boardDropdownBtn');
     if (!menu.contains(e.target) && !btn.contains(e.target)) {
@@ -80,26 +90,28 @@ function closeBoardDropdownOnOutside(e) {
 
 // Board Modal
 function openCreateBoardModal() {
-    toggleBoardDropdown();
-    document.getElementById('newBoardSlug').value = '';
-    document.getElementById('newBoardWorkdir').value = '';
+    // Close dropdown and detach outside listener before opening modal
+    var menu = document.getElementById('boardDropdownMenu');
+    if (menu && menu.style.display === 'block') {
+        menu.style.display = 'none';
+        document.removeEventListener('click', closeBoardDropdownOnOutside);
+    }
+    try { document.getElementById('newBoardSlug').value = ''; } catch(e) {}
+    try { document.getElementById('newBoardWorkdir').value = ''; } catch(e) {}
     document.getElementById('createBoardModal').classList.add('active');
 }
 
 function closeCreateBoardModal() {
     document.getElementById('createBoardModal').classList.remove('active');
-    document.getElementById('newBoardSlug').value = '';
-    document.getElementById('newBoardWorkdir').value = '';
+    try { document.getElementById('newBoardSlug').value = ''; } catch(e) {}
+    try { document.getElementById('newBoardWorkdir').value = ''; } catch(e) {}
 }
 
 async function submitCreateBoard() {
-    var slug = document.getElementById('newBoardSlug').value.trim();
-    if (!slug) { toast('Board slug is required', 'error'); return; }
-    slug = slug.toLowerCase().replace(/[^a-z0-9_-]/g, '');
-    if (!slug) { toast('Invalid board slug', 'error'); return; }
-    var workdir = document.getElementById('newBoardWorkdir').value.trim() || null;
+    var slug = (document.getElementById('newBoardSlug') || document.getElementById('newBoardName')).value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    if (!slug) { toast('Board name is required', 'error'); return; }
     try {
-        await api('POST', '/boards', { slug: slug, default_workdir: workdir });
+        await api('POST', '/boards', { slug: slug });
         toast('Board created!', 'success');
         closeCreateBoardModal();
         await loadBoards();
