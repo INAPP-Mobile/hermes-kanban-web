@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico" type="image/png">
 <title>Hermes Kanban Web</title>
-<link rel="stylesheet" href="/assets/css/styles.css?v=21">
+<link rel="stylesheet" href="/assets/css/styles.css?v=22">
 <script>try{var t=localStorage.getItem('kanban-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}</script>
 </head>
 <body>
@@ -44,8 +44,9 @@
 
 <!-- Task Modal -->
 <div class="modal-overlay" id="taskModal">
-    <div class="modal">
+    <div class="modal setup-modal modal-task">
         <h2><span class="modal-icon">&#9998;</span><span id="taskModalTitle">Edit Task</span></h2>
+        <button class="close-btn" onclick="App.closeTaskModal()">&times;</button>
         <div class="modal-body-full">
             <input type="hidden" id="taskId">
             <div class="field"><label>Title *</label><input id="taskTitle" placeholder="Task title..."></div>
