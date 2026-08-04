@@ -73,7 +73,7 @@ function closeDropdownsOnOutside(e) {
     if (modalActive) return; // never close while a modal is open
 
     var boardMenu = document.getElementById('boardDropdownMenu');
-    var profileSelect = document.getElementById('profileDropdownList');
+    var profileSelect = document.getElementById('profileDropdownMenu');
     var boardBtn = document.getElementById('boardDropdownBtn');
     var profileBtn = document.getElementById('profileDropdownBtn');
 
