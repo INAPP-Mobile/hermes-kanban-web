@@ -144,7 +144,7 @@ async function submitCreateProfile() {
 
 function openDeleteProfileModal() {
     toggleProfileDropdown();
-    document.getElementById('deleteProfileName').textContent = App.activeProfile || 'worker3';
+    document.getElementById('deleteProfileName').textContent = App.activeProfile || 'default';
     document.getElementById('deleteProfileModal').classList.add('active');
 }
 
@@ -153,7 +153,7 @@ function closeDeleteProfileModal() {
 }
 
 async function submitDeleteProfile() {
-    var name = App.activeProfile || 'worker3';
+    var name = App.activeProfile || 'default';
     if (!name) return;
     if (!confirm('Permanently delete profile "' + name + '"?')) return;
     try {
