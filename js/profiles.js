@@ -36,6 +36,11 @@ function toggleProfileDropdown() {
         return;
     }
     var isOpen = menu.style.display === 'block';
+    if (!isOpen) {
+        // Close the other dropdown for mutual exclusivity
+        var boardMenu = document.getElementById('boardDropdownMenu');
+        if (boardMenu) boardMenu.style.display = 'none';
+    }
     if (isOpen) {
         menu.style.display = 'none';
         _dropdownsOpen--;

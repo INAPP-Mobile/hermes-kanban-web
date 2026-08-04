@@ -98,6 +98,11 @@ function toggleBoardDropdown() {
         return;
     }
     var isOpen = menu.style.display === 'block';
+    if (!isOpen) {
+        // Close the other dropdown for mutual exclusivity
+        var profileMenu = document.getElementById('profileDropdownMenu');
+        if (profileMenu) profileMenu.style.display = 'none';
+    }
     if (isOpen) {
         menu.style.display = 'none';
         _dropdownsOpen--;
