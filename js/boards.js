@@ -63,6 +63,30 @@ function renderBoardDropdown() {
     menu.innerHTML = html;
 }
 
+// --- Unified Outside-Click Handler (shares between board + profile) ---
+// Attached once at init; closes any open dropdown unless a modal/other dropdown is active
+var _dropdownsOpen = 0;
+
+function closeDropdownsOnOutside(e) {
+    if (!e || !e.target) return;
+    var modalActive = document.querySelector('.modal-overlay.active');
+    if (modalActive) return; // never close while a modal is open
+
+    var boardMenu = document.getElementById('boardDropdownMenu');
+    var profileSelect = document.getElementById('profileDropdownList');
+    var boardBtn = document.getElementById('boardDropdownBtn');
+    var profileBtn = document.getElementById('profileDropdownBtn');
+
+    if (boardMenu && boardMenu.contains(e.target)) return;
+    if (profileSelect && profileSelect.contains(e.target)) return;
+    if (boardBtn && boardBtn.contains(e.target)) return;
+    if (profileBtn && profileBtn.contains(e.target)) return;
+
+    // Close any open dropdowns
+    if (boardMenu) boardMenu.style.display = 'none';
+    if (profileSelect) profileSelect.style.display = 'none';
+}
+
 function toggleBoardDropdown() {
     var menu = document.getElementById('boardDropdownMenu');
     if (!menu) return;
@@ -70,36 +94,20 @@ function toggleBoardDropdown() {
     var anyModalActive = document.querySelector('.modal-overlay.active');
     if (anyModalActive) {
         menu.style.display = 'none';
-        document.removeEventListener('click', closeBoardDropdownOnOutside);
+        _dropdownsOpen--;
         return;
     }
     var isOpen = menu.style.display === 'block';
     if (isOpen) {
         menu.style.display = 'none';
-        document.removeEventListener('click', closeBoardDropdownOnOutside);
+        _dropdownsOpen--;
     } else {
         menu.style.display = 'block';
-        // Remove stale listener first, then add fresh one so we always have exactly one
-        document.removeEventListener('click', closeBoardDropdownOnOutside);
+        // Remove stale listener first, then add fresh shared one so we always have exactly one
+        document.removeEventListener('click', closeDropdownsOnOutside);
         setTimeout(function() {
-            document.addEventListener('click', closeBoardDropdownOnOutside);
+            document.addEventListener('click', closeDropdownsOnOutside);
         }, 10);
-    }
-}
-
-function closeBoardDropdownOnOutside(e) {
-    if (!e || !e.target) return;
-    // If a modal is now open, detach listener and leave dropdown alone
-    var anyModalActive = document.querySelector('.modal-overlay.active');
-    if (anyModalActive) {
-        menu.style.display = 'none';
-        document.removeEventListener('click', closeBoardDropdownOnOutside);
-        return;
-    }
-    var btn = document.getElementById('boardDropdownBtn');
-    if (!menu.contains(e.target) && !btn.contains(e.target)) {
-        menu.style.display = 'none';
-        document.removeEventListener('click', closeBoardDropdownOnOutside);
     }
 }
 

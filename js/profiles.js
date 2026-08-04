@@ -27,24 +27,25 @@ function renderProfileDropdown() {
 
 function toggleProfileDropdown() {
     var menu = document.getElementById('profileDropdownMenu');
+    if (!menu) return;
+    // If any modal is open, bail out — don't close it on outside clicks
+    var anyModalActive = document.querySelector('.modal-overlay.active');
+    if (anyModalActive) {
+        menu.style.display = 'none';
+        _dropdownsOpen--;
+        return;
+    }
     var isOpen = menu.style.display === 'block';
     if (isOpen) {
         menu.style.display = 'none';
-        document.removeEventListener('click', closeProfileDropdownOnOutside);
+        _dropdownsOpen--;
     } else {
         menu.style.display = 'block';
+        // Remove stale listener first, then add fresh shared one so we always have exactly one
+        document.removeEventListener('click', closeDropdownsOnOutside);
         setTimeout(function() {
-            document.addEventListener('click', closeProfileDropdownOnOutside);
+            document.addEventListener('click', closeDropdownsOnOutside);
         }, 10);
-    }
-}
-
-function closeProfileDropdownOnOutside(e) {
-    var menu = document.getElementById('profileDropdownMenu');
-    var btn = document.getElementById('profileDropdownBtn');
-    if (!menu.contains(e.target) && !btn.contains(e.target)) {
-        menu.style.display = 'none';
-        document.removeEventListener('click', closeProfileDropdownOnOutside);
     }
 }
 
