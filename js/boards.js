@@ -118,11 +118,10 @@ function toggleBoardDropdown() {
 
 // Board Modal
 function openCreateBoardModal() {
-    // Close dropdown and detach outside listener before opening modal
     var menu = document.getElementById('boardDropdownMenu');
     if (menu && menu.style.display === 'block') {
         menu.style.display = 'none';
-        document.removeEventListener('click', closeBoardDropdownOnOutside);
+        document.removeEventListener('click', closeDropdownsOnOutside);
     }
     try { document.getElementById('newBoardSlug').value = ''; } catch(e) {}
     try { document.getElementById('newBoardWorkdir').value = ''; } catch(e) {}
@@ -130,17 +129,6 @@ function openCreateBoardModal() {
     var modalEl = document.getElementById('createBoardModal');
     if (modalEl) modalEl.classList.add('active');
 }
-
-App.closeCreateBoardModal = closeCreateBoardModal;
-
-function closeCreateBoardModal() {
-    var modalEl = document.getElementById('createBoardModal');
-    if (modalEl) modalEl.classList.remove('active');
-    try { document.getElementById('newBoardSlug').value = ''; } catch(e) {}
-    try { document.getElementById('newBoardWorkdir').value = ''; } catch(e) {}
-}
-
-App.submitCreateBoard = submitCreateBoard;
 
 async function submitCreateBoard() {
     var slug = (document.getElementById('newBoardSlug') || document.getElementById('newBoardName')).value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
