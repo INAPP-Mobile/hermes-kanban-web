@@ -68,6 +68,7 @@ var App = {
     // LLM Setup Wizard
     checkSetupStatus: function() {
         api('GET', '/api/status').then(function(s) {
+            _currentConfig = s;
             var btn = document.getElementById('relaunchSetupBtn');
             if (btn) {
                 btn.style.display = 'flex';  // always show so user can reconfigure anytime

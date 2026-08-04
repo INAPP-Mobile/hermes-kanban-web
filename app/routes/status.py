@@ -17,6 +17,18 @@ _PROVIDER_KEY_PREFIXES = tuple(
     k.partition("_")[0] for k in _PROVIDER_ENV_KEYS
 )
 
+# Map provider key -> (base_url_env, api_key_env)
+_PROVIDER_MAP = {
+    "ollama":   ("OLLAMA_BASE_URL", "OLLAMA_API_KEY"),
+    "openai":   ("OPENAI_BASE_URL", "OPENAI_API_KEY"),
+    "anthropic":("ANTHROPIC_BASE_URL", "ANTHROPIC_API_KEY"),
+    "groq":     ("GROQ_BASE_URL", "GROQ_API_KEY"),
+    "deepseek": ("DEEPSEEK_BASE_URL", "DEEPSEEK_API_KEY"),
+    "openrouter":("OPENROUTER_DEFAULT_URL", "OPENROUTER_API_KEY"),  # no base_url in env, use constant
+}
+
+_OPENROUTER_DEFAULT = "https://openrouter.ai/api/v1"
+
 
 def _config_path():
     hermes_home = os.environ.get("HERMES_HOME", os.path.expanduser("~/.hermes"))
@@ -38,23 +50,45 @@ def _env_file_has_provider(hermes_home):
     return False
 
 
-@router.get("/status")
-def get_status():
-    model = ""
-    hermes_home = os.environ.get("HERMES_HOME", os.path.expanduser("~/.hermes"))
+def _detect_current_config(hermes_home):
+    """Return (provider_key, base_url, model) from current env/config."""
     config_path = _config_path()
+    model = ""
     if config_path and os.path.exists(config_path):
         try:
             with open(config_path) as f:
                 cfg = yaml.safe_load(f) or {}
             model = (cfg.get("model") or "").strip()
         except Exception:
-            cfg = {}
-    has_provider_env = any(os.environ.get(k) for k in _PROVIDER_ENV_KEYS)
+            pass
+
+    # Detect provider by checking which group has a key/url set
+    for pk, (url_var, key_var) in _PROVIDER_MAP.items():
+        url_val = os.environ.get(url_var, "") or ""
+        key_val = os.environ.get(key_var, "") or ""
+        if url_val.strip() and not url_val.startswith("#"):
+            return pk, url_val.strip(), model
+        if key_val.strip() and not key_val.startswith("#"):
+            # For openrouter without explicit base_url, use default
+            base = os.environ.get(url_var, _OPENROUTER_DEFAULT) or _OPENROUTER_DEFAULT
+            return pk, base.strip(), model
+
+    return "", "", model
+
+
+@router.get("/status")
+def get_status():
+    hermes_home = os.environ.get("HERMES_HOME", os.path.expanduser("~/.hermes"))
+    provider_key, base_url, model = _detect_current_config(hermes_home)
+
+    has_provider_env = bool(provider_key)
     has_provider_envfile = not has_provider_env and _env_file_has_provider(hermes_home)
+
     return {
         "llm_configured": bool(model and (has_provider_env or has_provider_envfile)),
         "model": model,
+        "provider_key": provider_key if has_provider_env else "",
+        "base_url": base_url if has_provider_env else "",
         "provider_count": sum(1 for k in _PROVIDER_ENV_KEYS if os.environ.get(k)),
         "active_profile": "default",
     }

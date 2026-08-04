@@ -1,5 +1,6 @@
 // --- LLM Setup Wizard ---
 
+var _currentConfig = null;  // populated by checkSetupStatus() from /api/status
 var PROVIDERS = [
     { key: 'ollama', label: 'Ollama', default_url: 'http://localhost:11434' },
     { key: 'openai', label: 'OpenAI-compatible', default_url: 'https://api.openai.com/v1' },
@@ -11,7 +12,12 @@ App.renderProviderList = function() {
     var html = '<div class="provider-grid">';
     PROVIDERS.forEach(function(p) {
         var icon = p.key === 'ollama' ? '\u{1F916}' : p.key === 'openai' ? '\u2B50' : p.key === 'openrouter' ? '\u{1F310}' : '\u26AA';
-        html += '<div class="provider-option" data-provider-key="' + p.key + '">' +
+        // If we have a current config, pre-select the matching provider card
+        var classes = ['provider-option'];
+        if (_currentConfig && _currentConfig.provider_key === p.key) {
+            classes.push('selected');
+        }
+        html += '<div class="' + classes.join(' ') + '" data-provider-key="' + p.key + '">' +
             '<span class="provider-radio"></span>' +
             '<span class="provider-label">' + icon + '  ' + p.label + '</span>' +
         '</div>';
@@ -30,6 +36,16 @@ App.renderProviderList = function() {
             if (p) App.chooseProvider(p, e);
         });
     }
+
+    // If there's current config, auto-open that provider's form with filled values
+    if (_currentConfig && _currentConfig.provider_key) {
+        var cp = PROVIDERS.find(function(r){ return r.key === _currentConfig.provider_key; });
+        if (cp) {
+            setTimeout(function() {
+                App.chooseProvider(cp, null);
+            }, 100);
+        }
+    }
 };
 
 App.chooseProvider = function(p, e) {
@@ -38,16 +54,20 @@ App.chooseProvider = function(p, e) {
     var targetEl = e ? e.target.closest('.provider-option') : null;
     if (targetEl) targetEl.classList.add('selected');
 
-    var activeProfileName = document.getElementById('currentProfileLabel') ? document.getElementById('currentProfileLabel').textContent : 'default';
+    // Pre-fill form with current config data when available
+    var currentBaseUrl = _currentConfig && _currentConfig.base_url ? _currentConfig.base_url.replace(/'/g, '&#39;') : p.default_url;
+    var currentModel = _currentConfig && _currentConfig.model ? _currentConfig.model : '';
+    var currentProfile = document.getElementById('currentProfileLabel') ? document.getElementById('currentProfileLabel').textContent : 'default';
+
     var area = document.getElementById('providerFormArea');
     area.innerHTML =
         '<div class="setup-form">' +
         (p.key === 'openrouter' ? '<p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">OpenRouter provides a unified API for 50+ models. Your key stays local.</p>' : '') +
-        '<label>Base URL</label><input type="text" id="setupBaseUrl" value="' + p.default_url.replace(/'/g, '&#39;') + '" style="width:100%;margin-bottom:8px;" placeholder="' + p.default_url + '">' +
-        '<label>Model</label><input type="text" id="setupModel" placeholder="' + (p === PROVIDERS[0] ? 'e.g. qwen3:8b' : 'e.g. gpt-4o') + '" style="width:100%;margin-bottom:8px;">' +
+        '<label>Base URL</label><input type="text" id="setupBaseUrl" value="' + currentBaseUrl + '" style="width:100%;margin-bottom:8px;" placeholder="' + p.default_url + '">' +
+        '<label>Model</label><input type="text" id="setupModel" value="' + (currentModel || '') + '" style="width:100%;margin-bottom:8px;" placeholder="' + (p === PROVIDERS[0] ? 'e.g. qwen3:8b' : 'e.g. gpt-4o') + '">' +
         (p.key !== 'ollama' ? '<label>API Key</label><input type="password" id="setupApiKey" style="width:100%;margin-bottom:12px;" placeholder="Enter your API key...">' : '') +
-        '<label>Profile Name</label><input type="text" id="setupProfile" value="' + activeProfileName + '" style="width:100%;margin-bottom:16px;">' +
-        '<button onclick="App.saveSetup(\'' + p.key.replace(/'/g, "\\'") + '\')" class="btn-save-setup">Save • Reload</button>' +
+        '<label>Profile Name</label><input type="text" id="setupProfile" value="' + currentProfile + '" style="width:100%;margin-bottom:16px;">' +
+        '<button onclick="App.saveSetup(\'' + p.key.replace(/'/g, "\\'") + '\')" class="btn-save-setup">Save \u2022 Reload</button>' +
         '</div>';
 };
 
