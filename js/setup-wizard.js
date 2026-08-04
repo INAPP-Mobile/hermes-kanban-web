@@ -83,7 +83,7 @@ App.saveSetup = async function(providerKey) {
         base_url: document.getElementById('setupBaseUrl').value.trim(),
         model: document.getElementById('setupModel').value.trim(),
         api_key: (document.getElementById('setupApiKey') || {value:''}).value.trim(),
-        profile: document.getElementById('setupProfile').value.trim() || 'worker3',
+        profile: document.getElementById('setupProfile').value.trim() || 'default',
     };
     if (!body.model) { toast('Model name is required', 'error'); return; }
     try {
