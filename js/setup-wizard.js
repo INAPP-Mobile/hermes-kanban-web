@@ -51,8 +51,14 @@ App.renderProviderList = function() {
 App.chooseProvider = function(p, e) {
     // Highlight selected provider card
     document.querySelectorAll('.provider-option').forEach(function(el) { el.classList.remove('selected'); });
-    var targetEl = e ? e.target.closest('.provider-option') : null;
-    if (targetEl) targetEl.classList.add('selected');
+    
+    if (e && e.target.closest('.provider-option')) {
+        e.target.closest('.provider-option').classList.add('selected');
+    } else {
+        // Programmatic open: select by data-provider-key attribute
+        var card = document.querySelector('[data-provider-key="' + p.key + '"]');
+        if (card) card.classList.add('selected');
+    }
 
     // Pre-fill form with current config data when available
     var currentBaseUrl = _currentConfig && _currentConfig.base_url ? _currentConfig.base_url.replace(/'/g, '&#39;') : p.default_url;
