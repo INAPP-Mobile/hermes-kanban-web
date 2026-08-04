@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico" type="image/png">
 <title>Hermes Kanban Web</title>
-<link rel="stylesheet" href="/assets/css/styles.css?v=22">
+<link rel="stylesheet" href="/assets/css/styles.css?v=23">
 <script>try{var t=localStorage.getItem('kanban-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}</script>
 </head>
 <body>
@@ -79,8 +79,8 @@
             <div class="field"><label>Assignee</label><select id="taskAssignee"></select></div>
         </div>
         <div class="modal-actions">
-            <button onclick="closeTaskModal()">Cancel</button>
-            <button onclick="submitTaskModal()" id="taskModalSubmit" style="background:#0ea5e9;">Create</button>
+            <button class="btn-cancel" onclick="App.closeTaskModal()">Cancel</button>
+            <button class="btn-primary" onclick="App.submitTaskModal()">Create</button>
         </div>
     </div>
 </div>
@@ -105,8 +105,8 @@
             <div class="field slug-preview-field"><label>Suggested Slug</label><input type="text" id="newBoardSlug" readonly></div>
         </div>
         <div class="modal-actions">
-            <button onclick="App.closeCreateBoardModal()">Cancel</button>
-            <button onclick="App.submitCreateBoard()" style="background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">&plus; Create Board</button>
+            <button class="btn-cancel" onclick="App.closeCreateBoardModal()">Cancel</button>
+            <button class="btn-primary" onclick="App.submitCreateBoard()">&plus; Create Board</button>
         </div>
     </div>
 </div>
@@ -122,8 +122,8 @@
             <div class="field"><label>Default Workspace Path</label><input type="text" id="editBoardWorkdir" placeholder="/optional/path"></div>
         </div>
         <div class="modal-actions">
-            <button onclick="App.closeEditBoardModal()">Cancel</button>
-            <button onclick="App.submitEditBoard()" style="background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">Save Changes</button>
+            <button class="btn-cancel" onclick="App.closeEditBoardModal()">Cancel</button>
+            <button class="btn-primary" onclick="App.submitEditBoard()">Save Changes</button>
         </div>
     </div>
 </div>
@@ -138,8 +138,8 @@
             <p>The board <strong id="deleteBoardName"></strong> will be permanently deleted along with all its tasks and comments.</p>
         </div>
         <div class="modal-actions">
-            <button onclick="App.closeDeleteBoardModal()">Cancel</button>
-            <button onclick="App.submitDeleteBoard()" style="background:#dc3545;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">Delete Board</button>
+            <button class="btn-cancel" onclick="App.closeDeleteBoardModal()">Cancel</button>
+            <button class="btn-danger" onclick="App.submitDeleteBoard()">Delete Board</button>
         </div>
     </div>
 </div>
@@ -157,8 +157,8 @@
             <div class="field"><label>Clone From Existing Profile</label><select id="newProfileClone"><option value="">-- none --</option></select></div>
         </div>
         <div class="modal-actions">
-            <button onclick="App.closeCreateProfileModal()">Cancel</button>
-            <button onclick="App.submitCreateProfile()" style="background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">&plus; Create Profile</button>
+            <button class="btn-cancel" onclick="App.closeCreateProfileModal()">Cancel</button>
+            <button class="btn-primary" onclick="App.submitCreateProfile()">&plus; Create Profile</button>
         </div>
     </div>
 </div>
@@ -175,8 +175,8 @@
             <div class="field"><label>LLM Model</label><select id="editProfileModel"></select></div>
         </div>
         <div class="modal-actions">
-            <button onclick="App.closeEditProfileModal()">Cancel</button>
-            <button onclick="App.submitEditProfile()" style="background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">Save Changes</button>
+            <button class="btn-cancel" onclick="App.closeEditProfileModal()">Cancel</button>
+            <button class="btn-primary" onclick="App.submitEditProfile()">Save Changes</button>
         </div>
     </div>
 </div>
@@ -192,8 +192,8 @@
             <p>If this is the active profile, it cannot be deleted.</p>
         </div>
         <div class="modal-actions">
-            <button onclick="App.closeDeleteProfileModal()">Cancel</button>
-            <button onclick="App.submitDeleteProfile()" style="background:#dc3545;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">Delete Profile</button>
+            <button class="btn-cancel" onclick="App.closeDeleteProfileModal()">Cancel</button>
+            <button class="btn-danger" onclick="App.submitDeleteProfile()">Delete Profile</button>
         </div>
     </div>
 </div>
