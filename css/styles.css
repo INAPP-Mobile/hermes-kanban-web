@@ -601,9 +601,9 @@ body {
 .modal-icon { display: inline-block; margin-right: 6px; font-size: 20px; vertical-align: middle; }
 
 .close-btn {
-    position: absolute; top: 12px; right: 14px; background: none; border: none;
-    font-size: 22px; cursor: pointer; color: var(--text-secondary); padding: 4px 8px;
-    border-radius: 6px; line-height: 1; transition: all 0.15s;
+    position: absolute; top: 8px; right: 10px; background: none; border: none;
+    font-size: 26px; cursor: pointer; color: var(--text-secondary); padding: 4px 10px;
+    border-radius: 6px; line-height: 1; transition: all 0.15s; z-index: 10;
 }
 .close-btn:hover { background: var(--bg-input); color: var(--text); }
 
