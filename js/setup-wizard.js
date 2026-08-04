@@ -47,7 +47,7 @@ App.chooseProvider = function(p, e) {
         '<label>Model</label><input type="text" id="setupModel" placeholder="' + (p === PROVIDERS[0] ? 'e.g. qwen3:8b' : 'e.g. gpt-4o') + '" style="width:100%;margin-bottom:8px;">' +
         (p.key !== 'ollama' ? '<label>API Key</label><input type="password" id="setupApiKey" style="width:100%;margin-bottom:12px;" placeholder="Enter your API key...">' : '') +
         '<label>Profile Name</label><input type="text" id="setupProfile" value="' + activeProfileName + '" style="width:100%;margin-bottom:16px;">' +
-        '<button onclick="App.saveSetup(' + JSON.stringify(p.key).replace(/'/g, '&apos;') + ')" class="btn-save-setup">Save • Reload</button>' +
+        '<button onclick="App.saveSetup(\'' + p.key.replace(/'/g, "\\'") + '\')" class="btn-save-setup">Save • Reload</button>' +
         '</div>';
 };
 
