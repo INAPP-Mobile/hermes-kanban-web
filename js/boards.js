@@ -166,7 +166,6 @@ function closeDeleteBoardModal() {
 async function submitDeleteBoard() {
     var slug = BOARD_SLUG || (allBoards[0] ? allBoards[0].slug : '');
     if (!slug) return;
-    if (!confirm('Permanently delete board "' + slug + '"?')) return;
     try {
         await api('DELETE', '/boards/' + slug);
         toast('Board deleted', 'success');

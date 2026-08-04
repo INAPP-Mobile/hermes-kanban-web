@@ -156,7 +156,6 @@ function closeDeleteProfileModal() {
 async function submitDeleteProfile() {
     var name = App.activeProfile || 'default';
     if (!name) return;
-    if (!confirm('Permanently delete profile "' + name + '"?')) return;
     try {
         await api('DELETE', '/profiles/' + name);
         toast('Profile deleted', 'success');
