@@ -60,6 +60,21 @@ if [ -f "${HERMES_HOME}/.env" ]; then
     echo "[kanban] sourced ${HERMES_HOME}/.env"
 fi
 
+# Start the Hermes gateway — it hosts the embedded kanban dispatcher that
+# claims 'ready' tasks and runs them on the assigned profile. Without a
+# gateway (or legacy `hermes kanban daemon`) tasks sit in 'ready' forever and
+# the board never executes anything. We launch it in the background so it
+# ticks the dispatcher while uvicorn serves the web UI. Its log is written
+# under HERMES_HOME so it survives ephemeral scratch as gateway.log.
+GATEWAY_LOG="${HERMES_HOME}/kanban/gateway.log"
+if ! pgrep -f "hermes gateway run" >/dev/null 2>&1; then
+    echo "[kanban] starting Hermes gateway (embedded kanban dispatcher) → ${GATEWAY_LOG}"
+    nohup hermes gateway run >>"${GATEWAY_LOG}" 2>&1 &
+    disown || true
+else
+    echo "[kanban] gateway already running"
+fi
+
 exec python3 -m uvicorn main:app \
     --host 0.0.0.0 \
     --port "${PORT}"

@@ -13,6 +13,15 @@ def get_db_path(board_slug: str | None = None) -> str | None:
 
 
 def get_conn(board_slug: str | None = None) -> sqlite3.Connection:
+    """Open a read/write connection to a board's kanban.db.
+
+    The board schema is owned exclusively by the Hermes CLI (created via
+    `hermes kanban boards create`). This app never CREATE/ALTERs the schema —
+    it only reads task/event/comment/run rows that the CLI's canonical schema
+    already defines. No app-side migrations exist here (removed): adding or
+    renaming a column in the CLI would otherwise silently drift the board DB
+    away from what the daemon/gateway expects (e.g. `task_runs.summary`).
+    """
     db_path = get_db_path(board_slug)
     if not db_path or not os.path.exists(db_path):
         raise HTTPException(404, f"Board not found: {board_slug}")
@@ -20,34 +29,13 @@ def get_conn(board_slug: str | None = None) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
-    _run_migrations(conn)
     return conn
 
 
-def _run_migrations(conn: sqlite3.Connection) -> None:
-    """Idempotent schema migrations for existing databases."""
-    # Migration: add board_meta table if missing
-    if not conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='board_meta'"
-    ).fetchone():
-        conn.execute(
-            """CREATE TABLE board_meta (
-                key TEXT PRIMARY KEY,
-                value TEXT
-            )"""
-        )
-        conn.commit()
-    # Migration: add auto_decompose column if missing
-    cols = [r[1] for r in conn.execute("PRAGMA table_info(tasks)").fetchall()]
-    if "auto_decompose" not in cols:
-        conn.execute("ALTER TABLE tasks ADD COLUMN auto_decompose INTEGER DEFAULT 1")
-        conn.commit()
-
-
 def row_to_dict(row: sqlite3.Row | None) -> dict | None:
-    if row is None:
-        return None
-    return dict(row)
+    if row is not None:
+        return dict(row)
+    return None
 
 
 def get_all_board_names() -> list[str]:
@@ -55,7 +43,7 @@ def get_all_board_names() -> list[str]:
     if not os.path.isdir(BOARDS_DIR):
         return []
     return sorted(
-        name
-        for name in os.listdir(BOARDS_DIR)
-        if os.path.isfile(os.path.join(BOARDS_DIR, name, "kanban.db"))
+        n
+        for n in os.listdir(BOARDS_DIR)
+        if n != "_archived" and os.path.isfile(os.path.join(BOARDS_DIR, n, "kanban.db"))
     )
