@@ -61,6 +61,7 @@ function openCreateModal() {
     // Populate board dropdown from allBoards (loaded by boards.js)
     populateTaskBoardDropdown(BOARD_SLUG || (allBoards[0] ? allBoards[0].slug : ''));
     populateTaskAssigneeDropdown(null);
+    document.getElementById('taskModal').classList.add('active');
 }
 
 function openEditTaskModal(taskId, isStash) {
