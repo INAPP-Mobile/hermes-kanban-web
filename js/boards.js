@@ -130,6 +130,10 @@ function openCreateBoardModal() {
     if (modalEl) modalEl.classList.add('active');
 }
 
+function closeCreateBoardModal() {
+    document.getElementById('createBoardModal').classList.remove('active');
+}
+
 async function submitCreateBoard() {
     var slug = (document.getElementById('newBoardSlug') || document.getElementById('newBoardName')).value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
     if (!slug) { toast('Board name is required', 'error'); return; }
