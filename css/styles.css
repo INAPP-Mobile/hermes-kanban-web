@@ -610,6 +610,10 @@ body {
   border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
+/* Confirm modal (delete/duplicate task confirmation) */
+.confirm-modal { max-width: 440px; min-width: 320px; }
+.confirm-modal .confirm-body { flex: none; overflow: visible; }
+.confirm-body p { font-size: 14px; color: var(--text); line-height: 1.5; }
 /* Setup Wizard */
 .setup-modal { max-width: 520px; position: relative; overflow: visible; }
 .setup-hint { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5; margin-top: -8px; }

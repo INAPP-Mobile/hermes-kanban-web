@@ -25,7 +25,10 @@ function openConfirmModal(title, message, okText) {
         confirmResolve = resolve;
         document.getElementById('confirmTitle').textContent = title;
         document.getElementById('confirmMessage').innerHTML = message;
-        document.getElementById('confirmOkBtn').textContent = okText || 'OK';
+        var okBtn = document.getElementById('confirmOkBtn');
+        okBtn.textContent = okText || 'OK';
+        // Destructive actions (Delete) use danger styling; others use primary.
+        okBtn.className = (okText || '').toLowerCase().indexOf('delete') !== -1 ? 'btn-danger' : 'btn-primary';
         document.getElementById('confirmModal').classList.add('active');
     });
 }
