@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class TaskCreate(BaseModel):
@@ -13,6 +13,13 @@ class TaskCreate(BaseModel):
     workspace_path: str | None = None
     auto_decompose: bool = False
     status: str = "todo"
+
+    @field_validator("title", "body")
+    @classmethod
+    def _not_blank(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("must not be empty")
+        return v.strip()
 
 
 class TaskUpdate(BaseModel):

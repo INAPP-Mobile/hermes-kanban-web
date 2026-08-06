@@ -5,6 +5,16 @@ var taskModalIsStash = false;
 var tasks = [];
 var stashTasks = [];
 
+// Enable/disable the Create/Save button until both title and description are non-empty.
+function updateTaskSubmitState() {
+    var btn = document.getElementById('taskModalSubmit');
+    var title = (document.getElementById('taskTitle').value || '').trim();
+    var body = (document.getElementById('taskBody').value || '').trim();
+    var valid = title.length > 0 && body.length > 0;
+    btn.disabled = !valid;
+    btn.classList.toggle('disabled', !valid);
+}
+
 function loadStash(boardSlug) {
     var slug = boardSlug || BOARD_SLUG || (allBoards[0] ? allBoards[0].slug : '');
     if (!slug) return Promise.resolve();
@@ -52,6 +62,7 @@ function openCreateModal() {
     document.getElementById('taskBody').value = '';
     document.getElementById('taskPriority').value = '0';
     document.getElementById('taskGoalMode').value = 'false';
+    updateTaskSubmitState();
     var slug = BOARD_SLUG || (allBoards[0] ? allBoards[0].slug : '');
     if (slug) {
         api('GET', '/boards/' + slug + '/meta').then(function(resp) {
@@ -80,6 +91,7 @@ function openEditTaskModal(taskId, isStash) {
     document.getElementById('taskBody').value = task.body || '';
     document.getElementById('taskPriority').value = task.priority || 0;
     document.getElementById('taskGoalMode').value = task.goal_mode ? 'true' : 'false';
+    updateTaskSubmitState();
     document.getElementById('taskWorkdir').value = task.workspace_path || '';
     populateTaskBoardDropdown(task.board_id || (BOARD_SLUG || ''));
     document.getElementById('taskModal').classList.add('active');
@@ -127,7 +139,9 @@ function populateTaskBoardDropdown(selectedSlug) {
 
 async function submitTaskModal() {
     var title = document.getElementById('taskTitle').value.trim();
+    var body = document.getElementById('taskBody').value.trim();
     if (!title) { toast('Title is required', 'error'); return; }
+    if (!body) { toast('Description is required', 'error'); return; }
 
     var parentIds = [];
     var parentsRaw = document.getElementById('taskParents').value.trim();
@@ -142,7 +156,7 @@ async function submitTaskModal() {
 
     var body = {
         title: title,
-        body: document.getElementById('taskBody').value,
+        body: body,
         assignee: document.getElementById('taskAssignee').value || 'worker',
         priority: parseInt(document.getElementById('taskPriority').value) || 0,
         goal_mode: document.getElementById('taskGoalMode').value === 'true',

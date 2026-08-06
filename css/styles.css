@@ -768,6 +768,14 @@ body {
 }
 .btn-danger:hover { opacity: 0.9; }
 
+/* Disabled state (shared) */
+.btn-primary.disabled, .btn-primary:disabled,
+.btn-danger.disabled, .btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .btn-duplicate {
   padding: 8px 16px;
   border-radius: 6px;
