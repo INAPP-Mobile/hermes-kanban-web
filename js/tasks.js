@@ -304,9 +304,10 @@ function renderCard(task, isStash) {
         // No edit icon for stashed cards
     }
 
-    var cardClick = isStash ? "App.openEditTaskModal('" + task.id + "', true)" : "App.loadDetail('" + task.id + "')";
+    var cardClick = isStash ? '' : "App.loadDetail('" + task.id + "')";
+    var clickAttr = cardClick ? ' onclick="' + cardClick + '"' : '';
 
-    return '<div class="card" draggable="true" data-id="' + task.id + '" onclick="' + cardClick + '">' +
+    return '<div class="card" draggable="true" data-id="' + task.id + '"' + clickAttr + '>' +
         '<div class="card-id">' + task.id + '</div>' +
         cardActions +
         '<div class="card-title">' + escapeHtml(shortTitle) + '</div>' +
