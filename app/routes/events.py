@@ -37,6 +37,7 @@ async def stream_events():
             pass
 
         while True:
+            any_event = False
             try:
                 if os.path.isdir(BOARDS_DIR):
                     for name in sorted(os.listdir(BOARDS_DIR)):
@@ -54,20 +55,27 @@ async def stream_events():
                             for r in rows:
                                 rid = r["id"]
                                 last_ids[name] = rid
-                                data = json.dumps({
-                                    "id": rid,
-                                    "task_id": r["task_id"],
-                                    "board": name,
-                                    "kind": r["kind"],
-                                    "payload": r["payload"],
-                                    "created_at": r["created_at"],
-                                })
+                                data = json.dumps(
+                                    {
+                                        "id": rid,
+                                        "task_id": r["task_id"],
+                                        "board": name,
+                                        "kind": r["kind"],
+                                        "payload": r["payload"],
+                                        "created_at": r["created_at"],
+                                    }
+                                )
                                 yield f"id: {rid}\nevent: task_event\ndata: {data}\n\n"
+                                any_event = True
                             conn.close()
                         except Exception:
                             pass
             except Exception:
                 pass
+
+            if not any_event:
+                yield ":\n\n"
+
             await asyncio.sleep(1)
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
