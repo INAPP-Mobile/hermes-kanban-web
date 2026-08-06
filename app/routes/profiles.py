@@ -5,10 +5,24 @@ import yaml
 import httpx
 from fastapi import APIRouter, HTTPException
 
-from app.config import HERMES_CONFIG_PATH, PROFILES_DIR
+from app.config import HERMES_CONFIG_PATH, HERMES_HOME, PROFILES_DIR
 from app.models import ProfileCreate
 
 router = APIRouter()
+
+
+def _cli_env():
+    """Env for hermes CLI subprocesses.
+
+    The CLI resolves its state (including wrapper scripts) relative to
+    Path.home(). The container can run the web worker with HOME pointing
+    somewhere un-writable for the hermes user, which makes profile
+    create/delete fail on the wrapper. Pin HOME to HERMES_HOME so the
+    CLI's Path.home() lands inside the same location as PROFILES_DIR.
+    """
+    env = dict(os.environ)
+    env["HOME"] = HERMES_HOME
+    return env
 
 
 def _get_all_models_from_config():
@@ -169,7 +183,7 @@ def create_profile(body: ProfileCreate):
     if body.description:
         cmd.extend(["--description", body.description])
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30, env=_cli_env())
         if result.returncode != 0:
             raise HTTPException(500, result.stderr or result.stdout)
     except FileNotFoundError:
@@ -209,7 +223,7 @@ def update_profile(profile_name: str, body: ProfileCreate):
         try:
             result = subprocess.run(
                 ["hermes", "profile", "rename", old_name, new_name],
-                capture_output=True, text=True, timeout=30,
+                capture_output=True, text=True, timeout=30, env=_cli_env(),
             )
             if result.returncode != 0:
                 raise HTTPException(500, result.stderr or result.stdout)
@@ -221,7 +235,7 @@ def update_profile(profile_name: str, body: ProfileCreate):
         try:
             result = subprocess.run(
                 ["hermes", "profile", "describe", new_name, "--text", body.description],
-                capture_output=True, text=True, timeout=30,
+                capture_output=True, text=True, timeout=30, env=_cli_env(),
             )
             if result.returncode != 0:
                 raise HTTPException(500, result.stderr or result.stdout)
@@ -252,6 +266,7 @@ def delete_profile(profile_name: str):
             capture_output=True,
             text=True,
             timeout=30,
+            env=_cli_env(),
         )
         if result.returncode != 0:
             raise HTTPException(500, result.stderr or result.stdout)
