@@ -1,5 +1,6 @@
 // --- Drag and Drop ---
 var draggedCard = null;
+var isDragging = false; // true while a drag is in flight
 var dragZoneEl = null; // element currently showing .drag-over
 
 // Resolve the drop zone for any element under the pointer.
@@ -40,6 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var card = e.target.closest('.card');
         if (card) {
             draggedCard = card.getAttribute('data-id');
+            isDragging = true;
             card.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.setData('text/plain', draggedCard);
@@ -49,8 +51,13 @@ document.addEventListener('DOMContentLoaded', function() {
     board.addEventListener('dragend', function(e) {
         var card = e.target.closest('.card');
         if (card) card.classList.remove('dragging');
+        isDragging = false;
         draggedCard = null;
         clearDragOver();
+        // Any refresh that fired during the drag was suppressed in
+        // renderBoard(); re-render now that the drag is over so the board
+        // reflects the latest in-memory tasks/stash.
+        if (typeof renderBoard === 'function') { renderBoard(); renderStats(); }
     });
 
     // Highlight state is derived from dragover ONLY. dragover fires
@@ -95,6 +102,9 @@ document.addEventListener('DOMContentLoaded', function() {
         clearDragOver();
         if (!zone) return;
         e.preventDefault();
+        // Drop accepted — end the drag-suppression so the drop-triggered
+        // loadTasks()/renderBoard() calls below actually re-render.
+        isDragging = false;
         if (!draggedCard) return;
         var dropStatus = zone.getAttribute('data-status') || 'stash';
 

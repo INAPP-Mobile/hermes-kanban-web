@@ -263,6 +263,10 @@ function loadTasks(boardSlug) {
 }
 
 function renderBoard() {
+    // Suppress full re-render while a drag is in flight — replacing the board
+    // innerHTML mid-drag removes the dragged card from the DOM and the browser
+    // cancels the drag. Data is refreshed in-place once the drag ends.
+    if (isDragging) return;
     var columns = [
         { status: ['running', 'in_progress'], label: 'In Progress' },
         { status: ['ready'], label: 'Ready' },
