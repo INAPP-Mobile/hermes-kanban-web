@@ -70,6 +70,10 @@ def create_task(board_slug: str, task: TaskCreate):
         if board_slug:
             cmd.extend(["--board", board_slug])
         cmd.extend(["create", "--assignee", task.assignee or "worker"])
+        # Respect initial status from frontend (unstash drop target)
+        # CLI only accepts 'running' or 'blocked' as initial_status
+        if task.status == "blocked":
+            cmd.extend(["--initial-status", "blocked"])
         if task.parent_ids:
             for pid in task.parent_ids:
                 cmd.extend(["--parent", pid])
