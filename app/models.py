@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class TaskCreate(BaseModel):
@@ -23,14 +23,18 @@ class TaskCreate(BaseModel):
 
 
 class TaskUpdate(BaseModel):
-    title: str | None = None
-    body: str | None = None
-    assignee: str | None = None
+    """Update contract for an existing kanban task.
+
+    Only `status` is a supported mutation — the Hermes CLI has no command to
+    edit a live task's title/body/priority/workspace/assignee, so those fields
+    are intentionally absent. `extra="forbid"` hard-rejects any field-edit
+    attempt at the schema layer (default Pydantic silently drops extras,
+    which would turn a field edit into a silent no-op instead of a rejection).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
     status: str | None = None
-    priority: int | None = None
-    goal_mode: bool | None = None
-    workspace_path: str | None = None
-    workspace_kind: str | None = None
 
 
 class DependencyCreate(BaseModel):

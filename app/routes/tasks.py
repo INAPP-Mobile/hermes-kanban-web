@@ -103,19 +103,11 @@ def update_task(board_slug: str, task_id: str, update: TaskUpdate):
     Only 'status' is a supported mutation — the Hermes CLI has no command
     to edit a live task's title/body/priority/workspace/assignee, and this
     app must not write CLI-owned columns directly. Any other field is
-    rejected; users delete+recreate to change task content.
+    rejected by the TaskUpdate schema (extra="forbid"); users delete+
+    recreate to change task content.
     """
-    data = update.model_dump(exclude_unset=True) or {}
-    if not data:
+    if update.status is None:
         return {"ok": True}
-    unsupported = set(data.keys()) - {"status"}
-    if unsupported:
-        raise HTTPException(
-            400,
-            "field editing is not supported by the Hermes CLI; only 'status' "
-            "changes are allowed via the API. Delete + recreate the task to "
-            "change its content.",
-        )
     return change_task_status(board_slug, task_id, {"status": update.status})
 
 
