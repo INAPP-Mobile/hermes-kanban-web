@@ -98,37 +98,25 @@ def create_task(board_slug: str, task: TaskCreate):
 
 @router.patch("/api/tasks/{board_slug}/{task_id}")
 def update_task(board_slug: str, task_id: str, update: TaskUpdate):
-    """Update task fields. Status changes go through Hermes CLI; field edits go direct."""
-    update_data = update.model_dump(exclude_unset=True) or {}
+    """Update task status (status changes go through the Hermes CLI).
 
-    # If only status is being changed, delegate to CLI
-    if set(update_data.keys()) == {"status"}:
-        return change_task_status(board_slug, task_id, {"status": update.status})
-
-    # For field-only updates (title, body, priority), direct DB is OK
-    conn = get_conn(board_slug)
-    row = conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
-    if not row:
-        conn.close()
-        raise HTTPException(404, "Task not found")
-
-    fields = []
-    values = []
-    for field, value in update_data.items():
-        if field == "status":
-            continue  # handled above
-        fields.append(f"{field} = ?")
-        values.append(value)
-
-    if not fields:
-        conn.close()
+    Only 'status' is a supported mutation — the Hermes CLI has no command
+    to edit a live task's title/body/priority/workspace/assignee, and this
+    app must not write CLI-owned columns directly. Any other field is
+    rejected; users delete+recreate to change task content.
+    """
+    data = update.model_dump(exclude_unset=True) or {}
+    if not data:
         return {"ok": True}
-
-    values.append(task_id)
-    conn.execute(f"UPDATE tasks SET {', '.join(fields)} WHERE id = ?", values)
-    conn.commit()
-    conn.close()
-    return {"ok": True}
+    unsupported = set(data.keys()) - {"status"}
+    if unsupported:
+        raise HTTPException(
+            400,
+            "field editing is not supported by the Hermes CLI; only 'status' "
+            "changes are allowed via the API. Delete + recreate the task to "
+            "change its content.",
+        )
+    return change_task_status(board_slug, task_id, {"status": update.status})
 
 
 @router.delete("/api/tasks/{board_slug}/{task_id}")
