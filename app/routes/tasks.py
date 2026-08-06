@@ -73,6 +73,8 @@ def create_task(board_slug: str, task: TaskCreate):
         if task.parent_ids:
             for pid in task.parent_ids:
                 cmd.extend(["--parent", pid])
+        if task.workspace_path:
+            cmd.extend(["--workspace", "dir:" + task.workspace_path])
         if task.body:
             cmd.extend(["--body", task.body])
         cmd.append(task.title)

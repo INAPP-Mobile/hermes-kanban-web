@@ -29,6 +29,8 @@ class TaskUpdate(BaseModel):
     status: str | None = None
     priority: int | None = None
     goal_mode: bool | None = None
+    workspace_path: str | None = None
+    workspace_kind: str | None = None
 
 
 class DependencyCreate(BaseModel):
