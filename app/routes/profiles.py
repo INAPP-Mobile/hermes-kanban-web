@@ -129,9 +129,12 @@ def list_profiles():
     if os.path.isdir(PROFILES_DIR):
         for name in sorted(os.listdir(PROFILES_DIR)):
             profile_config = os.path.join(PROFILES_DIR, name, "config.yaml")
-            if not os.path.isfile(profile_config):
-                continue
             profile_yaml = os.path.join(PROFILES_DIR, name, "profile.yaml")
+            # A profile dir may legitimately lack config.yaml (e.g. freshly
+            # created via CLI with no model/clone). Don't skip it or the
+            # dropdown won't show newly created profiles.
+            if not os.path.isdir(os.path.join(PROFILES_DIR, name)):
+                continue
             model = "\u2014"
             alias = ""
             if os.path.isfile(profile_config):
