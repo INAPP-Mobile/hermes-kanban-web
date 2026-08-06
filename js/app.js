@@ -16,7 +16,7 @@ var App = {
         if (slug) {
             BOARD_SLUG = slug;
             document.getElementById('boardDropdownMenu').style.display = 'none';
-            document.removeEventListener('click', closeBoardDropdownOnOutside);
+            document.removeEventListener('click', closeDropdownsOnOutside);
             document.getElementById('currentBoardLabel').textContent = slug;
             renderBoardDropdown();
             window.location.href = '/?board=' + slug;
