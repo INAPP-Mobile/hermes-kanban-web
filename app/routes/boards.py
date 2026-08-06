@@ -4,7 +4,7 @@ import subprocess
 
 from fastapi import APIRouter, HTTPException
 
-from app.config import BOARDS_DIR, HERMES_CONFIG_PATH
+from app.config import BOARDS_DIR, HERMES_CONFIG_PATH, PROFILES_DIR
 from app.database import get_conn, get_all_board_names
 from app.models import BoardCreate
 
@@ -115,11 +115,15 @@ def set_auto_decompose(board_slug: str, body: dict):
 
 @router.get("/api/boards/{board_slug}/orchestrator-profile")
 def get_orchestrator_profile(board_slug: str):
-    orchestrator_profile = "worker3"
+    orchestrator_profile = "default"
     if os.path.exists(HERMES_CONFIG_PATH):
         with open(HERMES_CONFIG_PATH, "r") as f:
             config = yaml.safe_load(f)
-            orchestrator_profile = config.get("kanban", {}).get("orchestrator_profile", "worker3")
+            orchestrator_profile = config.get("kanban", {}).get("orchestrator_profile", "default")
+    # If the configured profile no longer exists, fall back to default so
+    # the UI never shows a profile that can't actually run tasks.
+    if not os.path.isdir(os.path.join(PROFILES_DIR, orchestrator_profile)):
+        orchestrator_profile = "default"
     conn = get_conn(board_slug)
     row = conn.execute(
         "SELECT COUNT(*) as cnt FROM tasks WHERE assignee = ?",
