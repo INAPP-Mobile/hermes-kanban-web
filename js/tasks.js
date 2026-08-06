@@ -76,6 +76,10 @@ function openCreateModal() {
 }
 
 function openEditTaskModal(taskId, isStash) {
+    if (!isStash) {
+        toast('Editing live kanban tasks is not supported (use Hermes CLI)', 'error');
+        return;
+    }
     taskModalMode = 'edit';
     taskModalTaskId = taskId;
     taskModalIsStash = isStash;
@@ -169,23 +173,20 @@ async function submitTaskModal() {
         var slug = BOARD_SLUG || (allBoards[0] ? allBoards[0].slug : '');
         if (taskModalMode === 'edit') {
             if (!taskModalTaskId) return;
-            if (taskModalIsStash) {
-                var stashIdx = stashTasks.findIndex(function(t) { return t.id === taskModalTaskId; });
-                if (stashIdx !== -1) {
-                    stashTasks[stashIdx] = Object.assign({}, stashTasks[stashIdx], body);
-                    saveStashToServer();
-                    toast('Stash task updated!', 'success');
-                    closeTaskModal();
-                    renderBoard();
-                } else {
-                    toast('Stash task not found', 'error');
-                }
-            } else {
-                await api('PATCH', '/tasks/' + slug + '/' + taskModalTaskId, body);
-                toast('Task updated!', 'success');
+            if (!taskModalIsStash) {
+                toast('Editing live kanban tasks is not supported (use Hermes CLI)', 'error');
                 closeTaskModal();
-                await loadTasks(slug);
-                if (App.detailTaskId === taskModalTaskId) App.openDetail(taskModalTaskId);
+                return;
+            }
+            var stashIdx = stashTasks.findIndex(function(t) { return t.id === taskModalTaskId; });
+            if (stashIdx !== -1) {
+                stashTasks[stashIdx] = Object.assign({}, stashTasks[stashIdx], body);
+                saveStashToServer();
+                toast('Stash task updated!', 'success');
+                closeTaskModal();
+                renderBoard();
+            } else {
+                toast('Stash task not found', 'error');
             }
         } else {
             await api('POST', '/tasks/' + slug, body);
