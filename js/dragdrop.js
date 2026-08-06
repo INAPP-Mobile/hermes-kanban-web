@@ -36,7 +36,11 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         var colBody = e.target.closest('.column-body[data-drop-status]');
         var stashDrop = e.target.closest('.stash-drop');
+        // Stash cards may only be unstashed onto the Todo column — don't
+        // even highlight other columns (no drop feedback on invalid targets).
+        var isStashCard = draggedCard && draggedCard.indexOf('s_') === 0;
         if (colBody) {
+            if (isStashCard && colBody.getAttribute('data-drop-status') !== 'todo') return;
             e.dataTransfer.dropEffect = 'move';
             colBody.classList.add('drag-over');
         } else if (stashDrop) {
@@ -104,6 +108,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Dragging a stash card back onto the board — create task directly, no modal
         var stashIdx = stashTasks.findIndex(function(t) { return t.id === draggedCard; });
         if (stashIdx !== -1 && dropStatus !== 'stash') {
+            // Stash cards may only be unstashed onto the Todo column.
+            // Everything else (ready/in_progress/blocked/done) is rejected —
+            // the dispatcher owns those lifecycle moves.
+            if (dropStatus !== 'todo') {
+                toast('Stash cards can only be unstashed to the Todo column', 'error');
+                draggedCard = null;
+                return;
+            }
             var stashCard = stashTasks[stashIdx];
             var slug = BOARD_SLUG || (allBoards[0] ? allBoards[0].slug : '');
             // Remove from stash immediately
