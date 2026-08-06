@@ -25,7 +25,6 @@ async function loadBoards() {
                 '<p>No boards yet — create your first board to get started.</p>' +
                 '<button class="btn-new-task" onclick="App.openCreateBoardModal()">+ Create Board</button>' +
                 '</div>';
-            document.getElementById('detailPanel').innerHTML = '';
             // Update profile label since no board orchestrator-profile is available
             document.getElementById('currentProfileLabel').textContent = allProfiles.length ? App.activeProfile : 'default';
             return; // profiles already rendered by loadProfiles(); do nothing more
