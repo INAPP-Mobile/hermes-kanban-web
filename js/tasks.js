@@ -248,12 +248,10 @@ function loadTasks(boardSlug) {
         tasks = data;
         var h = _hash(tasks);
         var changed = (h !== _lastTasksHash);
-        _lastTasksHash = h;
-        if (!changed) {
-            // Tasks unchanged — but stash may have, so still check stash
-            loadStash(slug);
-            return;
-        }
+        _lastTasksHash = h;        // Always check stash and render - removed early return optimization
+        loadStash(slug);
+        renderBoard();
+        renderStats();
         // Tasks changed — refresh stash then render
         loadStash(slug);
         renderBoard();
