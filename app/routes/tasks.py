@@ -187,27 +187,30 @@ def change_task_status(board_slug: str, task_id: str, body: dict):
 
 # --- Dependencies ---
 
+
+def _kanban_cli(board_slug: str, args: list[str]) -> None:
+    """Run a `hermes kanban` subcommand, raising HTTPException on error."""
+    cmd = ["hermes", "kanban"]
+    if board_slug:
+        cmd.extend(["--board", board_slug])
+    cmd.extend(args)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+    except FileNotFoundError:
+        raise HTTPException(500, "hermes CLI not found")
+    if result.returncode != 0:
+        raise HTTPException(500, f"hermes CLI error: {(result.stderr or result.stdout).strip()}")
+
+
 @router.post("/api/tasks/{board_slug}/{task_id}/dependencies")
 def add_dependency(board_slug: str, task_id: str, dep: DependencyCreate):
-    conn = get_conn(board_slug)
-    conn.execute(
-        "INSERT OR IGNORE INTO task_links (parent_id, child_id) VALUES (?, ?)",
-        (dep.parent_id, dep.child_id),
-    )
-    conn.commit()
-    conn.close()
+    _kanban_cli(board_slug, ["link", dep.parent_id, dep.child_id])
     return {"ok": True}
 
 
 @router.delete("/api/tasks/{board_slug}/{task_id}/dependencies")
 def remove_dependency(board_slug: str, task_id: str, dep: DependencyCreate):
-    conn = get_conn(board_slug)
-    conn.execute(
-        "DELETE FROM task_links WHERE parent_id = ? AND child_id = ?",
-        (dep.parent_id, dep.child_id),
-    )
-    conn.commit()
-    conn.close()
+    _kanban_cli(board_slug, ["unlink", dep.parent_id, dep.child_id])
     return {"ok": True}
 
 
