@@ -56,6 +56,9 @@ function openCreateModal() {
     taskModalMode = 'create';
     taskModalTaskId = null;
     taskModalIsStash = false;
+    // Status applies to real kanban tasks — show it for create
+    var statusField = document.getElementById('taskStatusField');
+    if (statusField) statusField.style.display = '';
     document.getElementById('taskModalTitle').textContent = 'New Task';
     document.getElementById('taskModalSubmit').textContent = 'Create';
     document.getElementById('taskTitle').value = '';
@@ -80,6 +83,9 @@ function openEditTaskModal(taskId, isStash) {
         toast('Editing live kanban tasks is not supported (use Hermes CLI)', 'error');
         return;
     }
+    // Stash items are drafts, not live kanban tasks — status doesn't apply
+    var statusField = document.getElementById('taskStatusField');
+    if (statusField) statusField.style.display = 'none';
     taskModalMode = 'edit';
     taskModalTaskId = taskId;
     taskModalIsStash = isStash;
@@ -304,7 +310,7 @@ function renderCard(task, isStash) {
         // No edit icon for stashed cards
     }
 
-    var cardClick = isStash ? '' : "App.loadDetail('" + task.id + "')";
+    var cardClick = isStash ? "App.openEditTaskModal('" + task.id + "', true)" : "App.loadDetail('" + task.id + "')";
     var clickAttr = cardClick ? ' onclick="' + cardClick + '"' : '';
 
     return '<div class="card" draggable="true" data-id="' + task.id + '"' + clickAttr + '>' +
