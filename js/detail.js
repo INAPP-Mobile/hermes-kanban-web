@@ -163,12 +163,13 @@ async function _openDetailInner(taskId) {
     if (topBtn) topBtn.onclick = function() { if (scrollTarget) scrollTarget.scrollTop = scrollTarget.scrollHeight; };
     if (bottomBtn) bottomBtn.onclick = function() { if (scrollTarget) scrollTarget.scrollTop = 0; };
 
-    // Actions
+    // Actions — use data attributes + delegation to avoid inline-quote escaping bugs
     var actionsEl = document.getElementById('detailActions');
+    actionsEl.setAttribute('data-task', task.id);
     actionsEl.innerHTML =
-        '<button onclick="App.duplicateTask(\'' + task.id + ')" class="btn-duplicate" title="Duplicate task">Duplicate</button>' +
-        '<button onclick="App.deleteTask(\'' + task.id + ')" class="btn-danger">Delete</button>' +
-        '<button onclick="App.closeDetail()" class="btn-cancel">Close</button>';
+        '<button data-action="duplicate" class="btn-duplicate" title="Duplicate task">Duplicate</button>' +
+        '<button data-action="delete" class="btn-danger">Delete</button>' +
+        '<button data-action="close" class="btn-cancel">Close</button>';
     actionsEl.style.display = 'flex';
 
     document.getElementById('detailModal').classList.add('active');
@@ -391,3 +392,20 @@ async function addComment() {
         toast('Failed to add comment: ' + e.message, 'error');
     }
 }
+
+// --- Detail Actions via event delegation ---
+// Buttons use data-action + parent data-task; avoids inline-onclick quote escaping bugs.
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('#detailActions button[data-action]');
+    if (!btn) return;
+    var actionsEl = btn.closest('#detailActions');
+    var taskId = actionsEl ? actionsEl.getAttribute('data-task') : null;
+    var action = btn.getAttribute('data-action');
+    if (action === 'duplicate') {
+        if (taskId) App.duplicateTask(taskId);
+    } else if (action === 'delete') {
+        if (taskId) App.deleteTask(taskId);
+    } else if (action === 'close') {
+        App.closeDetail();
+    }
+});
