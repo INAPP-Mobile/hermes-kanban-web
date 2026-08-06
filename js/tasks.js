@@ -59,6 +59,11 @@ function openCreateModal() {
     // Status applies to real kanban tasks — show it for create
     var statusField = document.getElementById('taskStatusField');
     if (statusField) statusField.style.display = '';
+    // Parent/child linkage can be set at creation; show the fields
+    var parentsField = document.getElementById('taskParentsField');
+    var childrenField = document.getElementById('taskChildrenField');
+    if (parentsField) parentsField.style.display = '';
+    if (childrenField) childrenField.style.display = '';
     document.getElementById('taskModalTitle').textContent = 'New Task';
     document.getElementById('taskModalSubmit').textContent = 'Create';
     document.getElementById('taskTitle').value = '';
@@ -86,6 +91,11 @@ function openEditTaskModal(taskId, isStash) {
     // Stash items are drafts, not live kanban tasks — status doesn't apply
     var statusField = document.getElementById('taskStatusField');
     if (statusField) statusField.style.display = 'none';
+    // Editing parent/child links on a draft is risky — hide the fields
+    var parentsField = document.getElementById('taskParentsField');
+    var childrenField = document.getElementById('taskChildrenField');
+    if (parentsField) parentsField.style.display = 'none';
+    if (childrenField) childrenField.style.display = 'none';
     taskModalMode = 'edit';
     taskModalTaskId = taskId;
     taskModalIsStash = isStash;
@@ -186,7 +196,11 @@ async function submitTaskModal() {
             }
             var stashIdx = stashTasks.findIndex(function(t) { return t.id === taskModalTaskId; });
             if (stashIdx !== -1) {
-                stashTasks[stashIdx] = Object.assign({}, stashTasks[stashIdx], body);
+                // Parent/child fields are hidden in edit mode — never mutate links on a draft
+                var editBody = Object.assign({}, body);
+                delete editBody.parent_ids;
+                delete editBody.child_ids;
+                stashTasks[stashIdx] = Object.assign({}, stashTasks[stashIdx], editBody);
                 saveStashToServer();
                 toast('Stash task updated!', 'success');
                 closeTaskModal();

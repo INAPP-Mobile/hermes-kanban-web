@@ -67,8 +67,8 @@
                 </select>
             </div>
             <div class="field"><label>Workspace Path</label><input id="taskWorkdir" placeholder="/optional/path"></div>
-            <div class="field"><label>Parent IDs (comma-separated)</label><input id="taskParents" placeholder="id1,id2"></div>
-            <div class="field"><label>Child IDs (comma-separated)</label><input id="taskChildren" placeholder="id1,id2"></div>
+            <div class="field" id="taskParentsField"><label>Parent IDs (comma-separated)</label><input id="taskParents" placeholder="id1,id2"></div>
+            <div class="field" id="taskChildrenField"><label>Child IDs (comma-separated)</label><input id="taskChildren" placeholder="id1,id2"></div>
             <div class="field"><label>Assignee</label><select id="taskAssignee"></select></div>
         </div>
         <div class="modal-actions">
@@ -222,7 +222,7 @@
 <script src="/assets/js/theme.js?v=22"></script>
 <script src="/assets/js/boards.js?v=27"></script>
 <script src="/assets/js/profiles.js?v=27"></script>
-<script src="/assets/js/tasks.js?v=32"></script>
+<script src="/assets/js/tasks.js?v=33"></script>
 <script src="/assets/js/detail.js?v=30"></script>
 <script src="/assets/js/dragdrop.js?v=23"></script>
 <script src="/assets/js/websocket.js?v=22"></script>
