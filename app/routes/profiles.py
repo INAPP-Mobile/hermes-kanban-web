@@ -194,12 +194,15 @@ def create_profile(body: ProfileCreate):
     # Set model if provided
     if body.model:
         profile_config_path = os.path.join(PROFILES_DIR, name, "config.yaml")
+        cfg = {}
         if os.path.isfile(profile_config_path):
             with open(profile_config_path, "r") as f:
                 cfg = yaml.safe_load(f) or {}
-            cfg.setdefault("model", {})["default"] = body.model
-            with open(profile_config_path, "w") as f:
-                yaml.safe_dump(cfg, f, default_flow_style=False)
+        # Use the flat "model: <str>" schema the CLI writes; freshly created
+        # profiles have no config.yaml so we create/seed it here.
+        cfg["model"] = body.model
+        with open(profile_config_path, "w") as f:
+            yaml.safe_dump(cfg, f, default_flow_style=False)
     return {"ok": True, "name": name}
 
 
