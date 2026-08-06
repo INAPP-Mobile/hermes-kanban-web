@@ -1,8 +1,29 @@
 // --- Drag and Drop ---
 var draggedCard = null;
+var dragZoneEl = null; // element currently showing .drag-over
+
+// Resolve the drop zone for any element under the pointer.
+// Whole columns (except the stash column — only the .stash-drop cell
+// accepts "move to stash") and the stash cell itself.
+function findDropZone(el) {
+    if (!el || !el.closest) return null;
+    var col = el.closest('.column[data-status]:not(.stash)');
+    if (col) return col;
+    return el.closest('.stash-drop');
+}
+
+function clearDragOver() {
+    if (dragZoneEl) {
+        dragZoneEl.classList.remove('drag-over');
+        dragZoneEl = null;
+    }
+    var els = document.querySelectorAll('.drag-over');
+    for (var i = 0; i < els.length; i++) els[i].classList.remove('drag-over');
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     var board = document.getElementById('kanbanBoard');
+    if (!board) return;
 
     board.addEventListener('click', function(e) {
         var card = e.target.closest('.card');
@@ -28,65 +49,54 @@ document.addEventListener('DOMContentLoaded', function() {
     board.addEventListener('dragend', function(e) {
         var card = e.target.closest('.card');
         if (card) card.classList.remove('dragging');
-        var cols = document.querySelectorAll('.column-body, .stash-drop');
-        for (var i = 0; i < cols.length; i++) cols[i].classList.remove('drag-over');
+        draggedCard = null;
+        clearDragOver();
     });
 
+    // Highlight state is derived from dragover ONLY. dragover fires
+    // continuously while the pointer is over a target, so the highlight is
+    // re-established on every move — no flicker from dragenter/dragleave
+    // boundary crossings (Chrome fires dragleave with null relatedTarget
+    // when crossing child boundaries, which used to remove the highlight
+    // mid-hover and make drops flaky).
     board.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        var colBody = e.target.closest('.column-body[data-drop-status]');
-        var stashDrop = e.target.closest('.stash-drop');
-        // Stash cards may only be unstashed onto the Todo column — don't
-        // even highlight other columns (no drop feedback on invalid targets).
+        var zone = findDropZone(e.target);
         var isStashCard = draggedCard && draggedCard.indexOf('s_') === 0;
-        if (colBody) {
-            if (isStashCard && colBody.getAttribute('data-drop-status') !== 'todo') {
-                // Invalid target for stash card - no highlight, no drop
-                e.dataTransfer.dropEffect = 'none';
-            } else {
-                colBody.classList.add('drag-over');
-                e.dataTransfer.dropEffect = 'move';
-            }
-        } else if (stashDrop) {
-            stashDrop.classList.add('drag-over');
+        if (zone && isStashCard) {
+            // Stash cards may only be unstashed onto the Todo column — don't
+            // even highlight other columns (no drop feedback on invalid targets).
+            var status = zone.getAttribute('data-status');
+            if (status !== 'todo') zone = null;
+        }
+        if (zone) {
+            e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
+            if (zone !== dragZoneEl) {
+                clearDragOver();
+                dragZoneEl = zone;
+                zone.classList.add('drag-over');
+            }
         } else {
-            // Not over a valid drop target
             e.dataTransfer.dropEffect = 'none';
+            clearDragOver();
         }
     });
 
+    // Only clear the highlight when the drag genuinely left the board.
+    // Null relatedTarget (window exit) is left to dragend cleanup to avoid
+    // spurious clears on child-boundary crossings.
     board.addEventListener('dragleave', function(e) {
-        // Only clear highlight if we're actually leaving the drop zone (not entering a child)
-        var colBody = e.target.closest('.column-body[data-drop-status]');
-        var stashDrop = e.target.closest('.stash-drop');
         var related = e.relatedTarget;
-    
-        // Handle case where relatedTarget is null (e.g., mouse left window)
-        if (related === null) {
-            if (colBody) colBody.classList.remove('drag-over');
-            if (stashDrop) stashDrop.classList.remove('drag-over');
-            return;
-        }
-    
-        if (colBody && !colBody.contains(related)) {
-            colBody.classList.remove('drag-over');
-        }
-        if (stashDrop && !stashDrop.contains(related)) {
-            stashDrop.classList.remove('drag-over');
-        }
+        if (related && !board.contains(related)) clearDragOver();
     });
 
     board.addEventListener('drop', function(e) {
-        var colBody = e.target.closest('.column-body[data-drop-status]');
-        var stashDrop = e.target.closest('.stash-drop');
-
-        if (!colBody && !stashDrop) return;
+        var zone = findDropZone(e.target);
+        clearDragOver();
+        if (!zone) return;
         e.preventDefault();
-        if (colBody) colBody.classList.remove('drag-over');
-        if (stashDrop) stashDrop.classList.remove('drag-over');
         if (!draggedCard) return;
-        var dropStatus = colBody ? colBody.getAttribute('data-drop-status') : 'stash';
+        var dropStatus = zone.getAttribute('data-status') || 'stash';
 
         if (dropStatus === 'trash') {
             var task = tasks.find(function(t) { return t.id === draggedCard; });
@@ -200,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var task = tasks.find(function(t) { return t.id === draggedCard; });
         if (!task) return;
         if (task.status === dropStatus) return;
-        
+
         // Prevent invalid transitions (Hermes only supports specific forward transitions)
         var validTransitions = {
             'todo': ['ready', 'running', 'blocked', 'scheduled', 'done'],
@@ -233,16 +243,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // Global dragover preventDefault - only for non-drop areas
 document.addEventListener('dragover', function(e) {
     // Only prevent default if we're over a valid drop target
-    var colBody = e.target.closest('.column-body[data-drop-status]');
-    var stashDrop = e.target.closest('.stash-drop');
-    if (colBody || stashDrop) {
-        e.preventDefault();
-    }
+    if (findDropZone(e.target)) e.preventDefault();
 });
 document.addEventListener('drop', function(e) {
-    var colBody = e.target.closest('.column-body[data-drop-status]');
-    var stashDrop = e.target.closest('.stash-drop');
-    if (colBody || stashDrop) {
-        e.preventDefault();
-    }
+    if (findDropZone(e.target)) e.preventDefault();
 });
