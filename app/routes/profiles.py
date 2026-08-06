@@ -123,7 +123,13 @@ def list_profiles():
             if os.path.isfile(profile_config):
                 with open(profile_config, "r") as f:
                     cfg = yaml.safe_load(f) or {}
-                model = cfg.get("model", {}).get("default", "\u2014")
+                model_val = cfg.get("model")
+                if isinstance(model_val, dict):
+                    model = model_val.get("default", "—") or "—"
+                elif isinstance(model_val, str) and model_val.strip():
+                    model = model_val.strip()
+                else:
+                    model = "—"
             if os.path.isfile(profile_yaml):
                 with open(profile_yaml, "r") as f:
                     pyaml = yaml.safe_load(f) or {}
