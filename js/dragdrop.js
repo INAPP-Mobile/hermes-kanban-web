@@ -40,12 +40,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // even highlight other columns (no drop feedback on invalid targets).
         var isStashCard = draggedCard && draggedCard.indexOf('s_') === 0;
         if (colBody) {
-            if (isStashCard && colBody.getAttribute('data-drop-status') !== 'todo') return;
-            e.dataTransfer.dropEffect = 'move';
-            colBody.classList.add('drag-over');
+            if (isStashCard && colBody.getAttribute('data-drop-status') !== 'todo') {
+                // Invalid target for stash card - no highlight, no drop
+                e.dataTransfer.dropEffect = 'none';
+            } else {
+                colBody.classList.add('drag-over');
+                e.dataTransfer.dropEffect = 'move';
+            }
         } else if (stashDrop) {
-            e.dataTransfer.dropEffect = 'move';
             stashDrop.classList.add('drag-over');
+            e.dataTransfer.dropEffect = 'move';
+        } else {
+            // Not over a valid drop target
+            e.dataTransfer.dropEffect = 'none';
         }
     });
 
@@ -54,7 +61,14 @@ document.addEventListener('DOMContentLoaded', function() {
         var colBody = e.target.closest('.column-body[data-drop-status]');
         var stashDrop = e.target.closest('.stash-drop');
         var related = e.relatedTarget;
-        
+    
+        // Handle case where relatedTarget is null (e.g., mouse left window)
+        if (related === null) {
+            if (colBody) colBody.classList.remove('drag-over');
+            if (stashDrop) stashDrop.classList.remove('drag-over');
+            return;
+        }
+    
         if (colBody && !colBody.contains(related)) {
             colBody.classList.remove('drag-over');
         }
