@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
         var card = e.target.closest('.card');
         if (card) {
             var id = card.getAttribute('data-id');
+            // Stash cards are click-inert — they aren't real kanban tasks
+            // (no server-side detail), and editing is intentionally hidden.
+            if (id && id.indexOf('s_') === 0) return;
             App.loadDetail(id);
         }
     });
