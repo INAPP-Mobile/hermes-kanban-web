@@ -81,14 +81,17 @@ function initAuthUI() {
     if (saveBtn) saveBtn.addEventListener('click', function() {
         var token = input ? input.value.trim() : '';
         setStoredToken(token);
-        // Re-connect SSE with the new token so live updates use auth.
-        if (window.connectEventStream) connectEventStream();
-        // Re-fetch data under the new token (401 -> modal reopens if wrong).
-        if (window.reloadBoardData) reloadBoardData();
+        // Show confirmation BEFORE the reload (location.reload mutates the page -
+        // any post-reload DOM writes here would be lost).
         if (status) {
             status.textContent = token ? 'Token saved. Reloading…' : 'Token cleared. Access is open (if server allows).';
-            status.style.color = 'var(--text-ok, #2ecc71)' ;
+            status.style.color = 'var(--text-ok, #2ecc71)';
         }
+        // Full page reload: reconnects SSE with the new token AND guarantees a
+        // fresh fetch of all cache-busted assets (index.html -> styles.css/js?v=N)
+        // so a stale cached build is never left in view after auth changes.
+        // The token persists in localStorage across the reload.
+        setTimeout(function() { location.reload(); }, 80);
     });
 
     if (clearBtn) clearBtn.addEventListener('click', function() {
