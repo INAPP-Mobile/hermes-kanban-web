@@ -8,6 +8,12 @@ async function api(method, path, body) {
     var raw = path.replace(/^\//, '');  // 'status'→'status', '/status'→'status', '/api/status'→'api/status'
     var url = '/' + (raw.startsWith('api/') ? raw : 'api/' + raw);
     var res = await fetch(url, opts);
+    // Server is auth-configured and rejected our token (401). Surface it so the
+    // auth modal auto-opens (e.g. on first launch with missing/incorrect token).
+    if (res.status === 401) {
+        if (window.handleAuthUnauthorized) window.handleAuthUnauthorized();
+        throw new Error(await res.text());
+    }
     if (!res.ok) throw new Error(await res.text());
     return res.json();
 }
