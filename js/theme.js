@@ -16,12 +16,8 @@ function applyTheme(theme) {
 // Save to both localStorage (instant) and server (persistent)
 function persistTheme(theme) {
     localStorage.setItem('kanban-theme', theme);
-    // Fire-and-forget server sync — no blocking
-    fetch('/api/theme', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ theme: theme }),
-    }).catch(function() {});
+    // Fire-and-forget server sync — no blocking (api() attaches auth header)
+    api('PUT', '/theme', { theme: theme }).catch(function() {});
 }
 
 function toggleTheme() {
@@ -37,9 +33,8 @@ function initTheme() {
         applyTheme(saved);
         return;
     }
-    // Nothing in localStorage — try server as fallback
-    fetch('/api/theme')
-        .then(function(r) { return r.json(); })
+    // Nothing in localStorage — try server as fallback (api() attaches auth header)
+    api('GET', '/theme')
         .then(function(data) {
             if (data.theme === 'dark') {
                 applyTheme('dark');

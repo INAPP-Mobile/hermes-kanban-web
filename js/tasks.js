@@ -18,10 +18,12 @@ function updateTaskSubmitState() {
 function loadStash(boardSlug) {
     var slug = boardSlug || BOARD_SLUG || (allBoards[0] ? allBoards[0].slug : '');
     if (!slug) return Promise.resolve();
-    return fetch('/api/stash/' + slug)
-        .then(function(r) { return r.json(); })
+    // Use api() (not raw fetch) so the auth token header is attached and a 401
+    // auto-opens the auth modal. Guards against non-array responses (e.g. the
+    // 401 {"detail":...} body) which previously crashed renderBoard's forEach.
+    return api('GET', '/stash/' + slug)
         .then(function(data) {
-            stashTasks = data || [];
+            stashTasks = Array.isArray(data) ? data : [];
             var h = _hash(stashTasks);
             if (h === _lastStashHash) return; // no change, skip
             _lastStashHash = h;
@@ -34,7 +36,10 @@ function loadStash(boardSlug) {
             // Fall back to localStorage cache if server is unreachable
             try {
                 var cached = localStorage.getItem('kanban-stash');
-                if (cached) stashTasks = JSON.parse(cached);
+                if (cached) {
+                    var parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed)) stashTasks = parsed;
+                }
             } catch(e) {}
         });
 }
@@ -44,12 +49,8 @@ function saveStashToServer() {
     if (!slug) return;
     // Cache locally first (instant)
     try { localStorage.setItem('kanban-stash', JSON.stringify(stashTasks)); } catch(e) {}
-    // Fire-and-forget server sync
-    fetch('/api/stash/' + slug, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tasks: stashTasks }),
-    }).catch(function() {});
+    // Fire-and-forget server sync (api() attaches auth header on 401).
+    api('PUT', '/stash/' + slug, { tasks: stashTasks }).catch(function() {});
 }
 
 function openCreateModal() {
@@ -127,7 +128,7 @@ function closeTaskModal() {
 function populateTaskAssigneeDropdown(selected) {
     var sel = document.getElementById('taskAssignee');
     sel.innerHTML = '';
-    fetch('/api/profiles').then(function(r) { return r.json(); }).then(function(profiles) {
+    api('GET', '/profiles').then(function(profiles) {
         profiles.forEach(function(p) {
             var opt = document.createElement('option');
             opt.value = p.name;
@@ -389,8 +390,8 @@ async function duplicateTask(taskId) {
     var confirmed = await openConfirmModal('Duplicate Task', 'Create a copy of this task?', 'Duplicate');
     if (!confirmed) return;
     try {
-        // Fetch full task data
-        var fullTask = await (await fetch('/api/tasks/' + slug + '/' + taskId)).json();
+        // Fetch full task data (api() attaches auth header)
+        var fullTask = await api('GET', '/tasks/' + slug + '/' + taskId);
         if (!fullTask || !fullTask.id) {
             toast('Failed to load task', 'error');
             return;
