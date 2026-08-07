@@ -58,7 +58,7 @@ def test_post_setup_ollama_writes_env_file(tmp_path, monkeypatch):
         "base_url": "http://my-host:11434",
         "model": "qwen3:8b",
         "api_key": "",
-        "profile": "worker3"
+        "profile": "default"
     }
     with patch("app.routes.setup._env_path", return_value=env_path), \
          patch.dict(os.environ, {"HERMES_HOME": str(tmp_path)}, clear=False):
@@ -76,7 +76,7 @@ def test_post_setup_openai_writes_api_key(tmp_path, monkeypatch):
         "base_url": "https://api.openai.com/v1",
         "model": "gpt-4o",
         "api_key": "sk-test-key",
-        "profile": "worker3"
+        "profile": "default"
     }
     with patch("app.routes.setup._env_path", return_value=env_path), \
          patch.dict(os.environ, {"HERMES_HOME": str(tmp_path)}, clear=False):

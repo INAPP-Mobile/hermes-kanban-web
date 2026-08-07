@@ -45,7 +45,7 @@ mkdir -p "${BOARDS_DIR}" "${KANBAN_DIR}/stash"
 if [ ! -f "${HERMES_HOME}/config.yaml" ]; then
     cat > "${HERMES_HOME}/config.yaml" <<YAML
 kanban:
-  orchestrator_profile: "worker3"
+  orchestrator_profile: "default"
   auto_decompose: true
 YAML
     chmod 644 "${HERMES_HOME}/config.yaml"
