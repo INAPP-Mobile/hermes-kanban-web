@@ -8,7 +8,7 @@ Host your own Hermes Kanban board in minutes with a single click. The template p
 
 ## Deploy to Railway
 
-[![Deploy to Railway](https://railway.app/button.svg)](https://railway.com/deploy/A6anEk)
+[![Deploy to Railway](https://railway.app/button.svg)](https://railway.com/deploy/hermes-kanban-web)
 
 Click the button above to deploy this template to Railway. The template creates a single service from the `nousresearch/hermes-kanban-web` Docker image with a persistent volume mounted at `/opt/data` for all board and profile data.
 
