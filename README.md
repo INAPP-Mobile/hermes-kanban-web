@@ -2,6 +2,12 @@
 
 A web-based Kanban board for managing Hermes agent tasks. Features drag-and-drop task management, live event streaming via Server-Sent Events (SSE), dark/light mode, stash/restore, multi-board support, and a profile manager — all backed by a shared persistent volume with the Hermes agent.
 
+## Screenshots
+
+![Kanban Board](https://raw.githubusercontent.com/INAPP-Mobile/hermes-kanban-web/main/.github/screens/board.png)
+
+![Task Detail](https://raw.githubusercontent.com/INAPP-Mobile/hermes-kanban-web/main/.github/screens/detail.png)
+
 # Deploy and Host
 
 Host your own Hermes Kanban board in minutes with a single click. The template provisions a FastAPI + vanilla JS single-page application running inside the official `nousresearch/hermes-agent` Docker image, with SSH-free persistent storage for all board and profile data.
