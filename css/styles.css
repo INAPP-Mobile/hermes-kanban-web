@@ -97,6 +97,8 @@ body {
 
 /* Header */
 .header {
+  position: relative;
+  z-index: 100;            /* own stacking context so dropdowns paint above the board */
   background: var(--bg-header);
   color: var(--text-inverse);
   padding: 12px 24px;
