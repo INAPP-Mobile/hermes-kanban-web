@@ -35,4 +35,5 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
 # it directly (dropping to the hermes user). /app/start.sh is executable and
 # runs as hermes — the s6-overlay /init PID 1 manages the process and
 # reaps zombies.
+# Build cache bust: auth UI added 2026-08-07
 CMD ["/app/start.sh"]
