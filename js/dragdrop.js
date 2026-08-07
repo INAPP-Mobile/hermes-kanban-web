@@ -70,10 +70,11 @@ document.addEventListener('DOMContentLoaded', function() {
         var zone = findDropZone(e.target);
         var isStashCard = draggedCard && draggedCard.indexOf('s_') === 0;
         if (zone && isStashCard) {
-            // Stash cards may only be unstashed onto the Todo column — don't
-            // even highlight other columns (no drop feedback on invalid targets).
+            // Stash cards may only be unstashed onto the Todo column, or
+            // dropped on trash to delete. Don't even highlight other columns
+            // (no drop feedback on invalid targets).
             var status = zone.getAttribute('data-status');
-            if (status !== 'todo') zone = null;
+            if (status !== 'todo' && status !== 'trash') zone = null;
         }
         if (zone) {
             e.preventDefault();
