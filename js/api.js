@@ -2,6 +2,8 @@
 async function api(method, path, body) {
     var opts = { method: method, headers: { 'Content-Type': 'application/json' } };
     if (body) opts.body = JSON.stringify(body);
+    // Attach optional bearer token if one is stored.
+    if (window.applyAuthHeaders) opts = applyAuthHeaders(opts);
     // Ensure path starts with single / — strips any leading slash before prepending /api/
     var raw = path.replace(/^\//, '');  // 'status'→'status', '/status'→'status', '/api/status'→'api/status'
     var url = '/' + (raw.startsWith('api/') ? raw : 'api/' + raw);

@@ -30,6 +30,7 @@
     </div>
     <div class="stats" id="stats"></div>
     <button class="theme-toggle" id="themeToggle" onclick="App.toggleTheme()" title="Toggle dark mode">&#127769;</button>
+    <button class="theme-toggle" id="authLockBtn" onclick="openAuthModal()" title="API token">&#128274;</button>
     <button id="relaunchSetupBtn" style="display:none;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;gap:4px;align-items:center;">
       <span>&#9881;</span><span>Configure LLM</span>
     </button>
@@ -214,18 +215,38 @@
     </div>
 </div>
 
+<!-- Auth Token Modal -->
+<div class="modal-overlay" id="authModal">
+    <div class="modal setup-modal">
+        <h2><span class="modal-icon">&#128274;</span><span>API Token</span></h2>
+        <button class="close-btn" onclick="closeAuthModal()">&times;</button>
+        <p class="setup-hint">Optional. When the server requires authentication, enter the token set as <code>HERMES_KANBAN_API_TOKEN</code> in Railway Vars. Stored only in this browser.</p>
+        <div class="modal-body">
+            <div class="field"><label>Bearer Token</label>
+                <input type="password" id="authTokenInput" placeholder="Paste your token..."></div>
+            <div class="field"><p id="authStatus" style="font-size:12px;"></p></div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeAuthModal()">Cancel</button>
+            <button class="btn-primary" id="authSaveBtn">Save</button>
+            <button class="btn-cancel" id="authClearBtn">Clear</button>
+        </div>
+    </div>
+</div>
+
 <!-- Toast Notification -->
 <div class="toast" id="toast"></div>
 
 <script src="/assets/js/utils.js?v=22"></script>
-<script src="/assets/js/api.js?v=28"></script>
+<script src="/assets/js/auth.js?v=1"></script>
+<script src="/assets/js/api.js?v=29"></script>
 <script src="/assets/js/theme.js?v=22"></script>
 <script src="/assets/js/boards.js?v=27"></script>
 <script src="/assets/js/profiles.js?v=27"></script>
 <script src="/assets/js/tasks.js?v=34"></script>
 <script src="/assets/js/detail.js?v=30"></script>
 <script src="/assets/js/dragdrop.js?v=25"></script>
-<script src="/assets/js/websocket.js?v=22"></script>
+<script src="/assets/js/websocket.js?v=23"></script>
 <script src="/assets/js/app.js?v=29"></script>
 <script src="/assets/js/setup-wizard.js?v=24"></script>
 

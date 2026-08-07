@@ -20,7 +20,7 @@ function connectEventStream() {
             }).catch(function() {});
         }
     }, 30000);
-    eventSource = new EventSource('/api/events/stream');
+    eventSource = new EventSource(authStreamUrl('/api/events/stream'));
     eventSource.addEventListener('task_event', function(e) {
         try {
             var event = JSON.parse(e.data);
