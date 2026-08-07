@@ -2,11 +2,48 @@
 
 A web-based Kanban board for managing Hermes agent tasks. Features drag-and-drop task management, live event streaming via Server-Sent Events (SSE), dark/light mode, stash/restore, multi-board support, and a profile manager — all backed by a shared persistent volume with the Hermes agent.
 
-## Overview
+# Deploy and Host
+
+Host your own Hermes Kanban board in minutes with a single click. The template provisions a FastAPI + vanilla JS single-page application running inside the official `nousresearch/hermes-agent` Docker image, with SSH-free persistent storage for all board and profile data.
+
+## Deploy to Railway
+
+[![Deploy to Railway](https://railway.app/button.svg)](https://railway.com/deploy/A6anEk)
+
+Click the button above to deploy this template to Railway. The template creates a single service from the `nousresearch/hermes-kanban-web` Docker image with a persistent volume mounted at `/opt/data` for all board and profile data.
+
+## Dependencies for
+
+The template is self-contained: it builds a single Docker service and needs no external databases, caches, or third-party services.
+
+### Deployment Dependencies
+
+- A Railway account with adequate quota for one small container (Hobby or Pro plan).
+- Provisioned automatically by the template: one service + one persistent volume (`/opt/data`).
+- Optional: an LLM provider (Ollama, OpenAI-compatible, OpenAI, OpenRouter, Anthropic, or Groq) for agent task orchestration. Without one the board still works for manual task tracking.
+
+## About Hosting
+
+The app runs **inside the `nousresearch/hermes-agent` Docker image**, so the `hermes` CLI is available on PATH and all persistent state (boards, profiles, config) lives under `HERMES_HOME` (`/opt/data`) on a Railway volume shared with the Hermes agent runtime. Because the data lives on a persistent volume, your boards, profiles, stashed cards and theme survive redeploys and restarts.
+
+## Why Deploy
+
+- **Zero-config self-hosting** — one-click deploy, persistent volume provided, no external services to wire up.
+- **AI-agent-aware task board** — task lifecycle operations shell out to the real `hermes` CLI, so the board you manage is the same system your agents run on.
+- **Real-time by default** — SSE keeps multiple browser tabs in sync without polling or manual refresh.
+- **Optional auth** — lock the board behind a bearer token in a single environment variable; leave it empty for an open, shared team board.
+- **Private by design** — your tasks, profiles and agent config stay on data you control, not on a shared SaaS backend.
+
+## Common Use Cases
+
+- Managing and visually tracking Hermes agent task queues across Todo, Ready, In Progress, Blocked, and Done.
+- A lightweight team kanban that reuses existing Hermes profiles and config instead of standing up a separate issue tracker.
+- Monitoring active agent workers with real-time PID liveness checks.
+- Stashing WIP cards locally and restoring them later, or quick drag-to-trash cleanup.
+
+# Overview
 
 Hermes Kanban Web is a FastAPI + vanilla JS single-page application that provides a browser-based UI for managing Hermes agent tasks. It serves as a frontend for the Hermes agent ecosystem: boards are stored as SQLite databases, task creation/status changes/comments/archive operations shell out to the `hermes` CLI, and real-time updates are delivered via SSE.
-
-The app runs **inside the `nousresearch/hermes-agent` Docker image**, so the `hermes` CLI is available on PATH and all persistent state (boards, profiles, config) lives under `HERMES_HOME` (`/opt/data`) on a Railway volume shared with the Hermes agent runtime.
 
 ## Features
 
@@ -20,24 +57,16 @@ The app runs **inside the `nousresearch/hermes-agent` Docker image**, so the `he
 - **Active worker monitoring** — real-time PID liveness checks on running task workers
 - **Hermes CLI integration** — all task lifecycle operations (create, promote, block, complete, schedule, archive, comment) delegate to the `hermes` CLI
 
-## Deploy
-
-### Deploy to Railway
-
-[![Deploy to Railway](https://railway.app/button.svg)](https://railway.com/deploy/-aYE-b)
-
-Click the button above to deploy this template to Railway. The template creates a single service from the `nousresearch/hermes-kanban-web` Docker image with a persistent volume mounted at `/opt/data` for all board and profile data.
-
-### Authentication (optional)
+## Authentication (optional)
 
 By default the board is **open with no authentication**. To protect the API you can set the `HERMES_KANBAN_API_TOKEN` environment variable (via the Railway Vars tab):
 
 - **Open (default):** leave the token empty — any request is allowed.
-- **Protected:** set `HERMES_KANBAN_API_TOKEN` to a secret value. Every API request (including the live SSE stream) must then send `Authorization: Bearer <token>`.
+- **Protected:** set `HERMES_KANBAN_API_TOKEN` to a secret value. Every API request (including the live SSE stream) must then send `Authorization: Bearer ***`
 
 Generate a strong token with `openssl rand -hex 32`.
 
-### Self-hosting (Docker)
+## Self-hosting (Docker)
 
 ```bash
 docker run -d \
@@ -49,7 +78,7 @@ docker run -d \
   ghcr.io/inapp-mobile/hermes-kanban-web:latest
 ```
 
-### Local Development
+## Local Development
 
 ```bash
 # Clone the repo
@@ -68,17 +97,18 @@ pip install fastapi uvicorn pydantic httpx pyyaml
 
 The app runs on http://localhost:8502.
 
-## Configuration
+# Configuration
 
-### Environment Variables
+## Environment Variables
 
 | Variable | Default | Description |
 |---|---|---|
 | `PORT` | `8502` | HTTP port the app binds to (Railway injects this automatically) |
-| `HERMES_HOME` | `/opt/data` | Root directory for all Hermes persistent state (boards, profiles, config.yaml) |
+| `HERMES_HOME` | `/opt/data` | Root directory for all Hermes persistent state (boards, profiles, config) |
 | `HOME` | `$HERMES_HOME` | Set to match HERMES_HOME so `~` resolves to the volume |
+| `HERMES_KANBAN_API_TOKEN` | *(empty)* | Optional bearer token. When set, all API requests require `Authorization: Bearer <token>`. |
 
-### Persistent Volume
+## Persistent Volume
 
 The app stores all state under `HERMES_HOME/kanban/`:
 
@@ -130,7 +160,7 @@ railway ssh -- sh -c 'hermes config set model qwen3:8b'
 
 > **Note**: Setting env vars on the service only takes effect after a redeploy (the running uvicorn process does not hot-reload `.env`). The wizard handles this by requiring a page reload after save.
 
-## Architecture Notes
+# Architecture Notes
 
 - **Hermes CLI dependency**: Task operations, profile management, and board settings shell out to the `hermes` CLI via `subprocess.run`. The `hermes` binary is provided by the `nousresearch/hermes-agent` base image's venv.
 - **SSE over WebSocket**: The frontend uses `EventSource` to connect to `GET /api/events/stream` for real-time updates. This is an in-process SSE stream that polls board SQLite databases — no external gateway connection required.
