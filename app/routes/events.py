@@ -3,12 +3,13 @@ import json
 import os
 import sqlite3
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
 from app.config import BOARDS_DIR
+from app.security import _check_api_token
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(_check_api_token)])
 
 
 @router.get("/api/events/stream")

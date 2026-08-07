@@ -8,5 +8,10 @@
         "defaultValue": "/opt/data",
         "description": "Root directory for all Hermes persistent state (boards, profiles, config). Mounted as a Railway volume.",
         "isOptional": true
+    },
+    "HERMES_KANBAN_API_TOKEN": {
+        "defaultValue": "",
+        "description": "OPTIONAL. When set, all API requests (including the SSE stream) require 'Authorization: Bearer <token>'. Leave empty to keep the board open.",
+        "isOptional": true
     }
 }

@@ -1,8 +1,10 @@
 import os
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 import yaml
 
-router = APIRouter(prefix="/api", tags=["status"])
+from app.security import _check_api_token
+
+router = APIRouter(prefix="/api", tags=["status"], dependencies=[Depends(_check_api_token)])
 
 _PROVIDER_ENV_KEYS = (
     "OLLAMA_BASE_URL", "OLLAMA_API_KEY",

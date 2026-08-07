@@ -2,15 +2,16 @@ import json
 import os
 import subprocess
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.config import BOARDS_DIR, HERMES_CONFIG_PATH, PROFILES_DIR
 from app.database import get_conn, get_all_board_names
 from app.models import BoardCreate
+from app.security import _check_api_token
 
 import yaml
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(_check_api_token)])
 
 
 def _run_cli(cmd: list[str], timeout: int = 60) -> str:

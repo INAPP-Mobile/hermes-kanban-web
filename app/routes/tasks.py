@@ -3,12 +3,13 @@ import time
 import uuid
 import subprocess
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.database import get_conn, row_to_dict
 from app.models import TaskCreate, TaskUpdate, DependencyCreate, CommentCreate
+from app.security import _check_api_token
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(_check_api_token)])
 
 
 @router.get("/api/tasks/{board_slug}")

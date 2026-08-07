@@ -3,12 +3,13 @@ import subprocess
 
 import yaml
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.config import HERMES_CONFIG_PATH, HERMES_HOME, PROFILES_DIR
 from app.models import ProfileCreate
+from app.security import _check_api_token
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(_check_api_token)])
 
 
 def _cli_env():

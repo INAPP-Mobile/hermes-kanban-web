@@ -3,11 +3,12 @@ import os
 import time
 import uuid
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.config import STASH_DIR
+from app.security import _check_api_token
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(_check_api_token)])
 
 
 def _stash_path(board_slug: str) -> str:

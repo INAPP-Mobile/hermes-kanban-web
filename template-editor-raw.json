@@ -6,5 +6,9 @@
     "HERMES_HOME": {
         "value": "/opt/data",
         "description": "Root directory for all Hermes persistent state (boards, profiles, config). Mounted as a Railway volume."
+    },
+    "HERMES_KANBAN_API_TOKEN": {
+        "value": "",
+        "description": "OPTIONAL bearer token. When set, all API requests (including the SSE stream) require 'Authorization: Bearer <token>'. Leave empty to keep the board open."
     }
 }

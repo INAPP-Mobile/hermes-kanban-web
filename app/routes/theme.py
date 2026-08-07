@@ -1,11 +1,12 @@
 import json
 import os
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.config import THEME_CONFIG_PATH
+from app.security import _check_api_token
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(_check_api_token)])
 
 
 def get_saved_theme() -> str:

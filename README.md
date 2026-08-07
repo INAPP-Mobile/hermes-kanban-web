@@ -28,6 +28,15 @@ The app runs **inside the `nousresearch/hermes-agent` Docker image**, so the `he
 
 Click the button above to deploy this template to Railway. The template creates a single service from the `nousresearch/hermes-kanban-web` Docker image with a persistent volume mounted at `/opt/data` for all board and profile data.
 
+### Authentication (optional)
+
+By default the board is **open with no authentication**. To protect the API you can set the `HERMES_KANBAN_API_TOKEN` environment variable (via the Railway Vars tab):
+
+- **Open (default):** leave the token empty — any request is allowed.
+- **Protected:** set `HERMES_KANBAN_API_TOKEN` to a secret value. Every API request (including the live SSE stream) must then send `Authorization: Bearer <token>`.
+
+Generate a strong token with `openssl rand -hex 32`.
+
 ### Self-hosting (Docker)
 
 ```bash
