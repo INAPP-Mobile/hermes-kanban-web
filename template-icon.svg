@@ -1,11 +1,26 @@
-<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-  <rect width="256" height="256" rx="24" fill="#0f172a"/>
-  <rect x="28" y="48" width="180" height="160" rx="12" fill="#1e293b"/>
-  <rect x="44" y="64" width="148" height="28" rx="4" fill="#38bdf8"/>
-  <rect x="44" y="108" width="76" height="92" rx="8" fill="#34d399"/>
-  <rect x="132" y="108" width="60" height="44" rx="8" fill="#a78bfa"/>
-  <rect x="132" y="168" width="60" height="24" rx="4" fill="#fbbf24"/>
-  <circle cx="72" cy="124" r="10" fill="#0f172a"/>
-  <circle cx="72" cy="156" r="10" fill="#f8fafc"/>
-  <circle cx="72" cy="188" r="10" fill="#cbd5e1"/>
+<svg width="800" height="800" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#15171A"/>
+      <stop offset="1" stop-color="#334155"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" rx="120" fill="url(#bg)"/>
+  <!-- Kanban board mark (white only): board outline + header + three columns with cards -->
+  <rect x="150" y="180" width="500" height="440" rx="40" fill="none" stroke="#FFFFFF" stroke-width="26"/>
+  <rect x="150" y="180" width="500" height="100" rx="40" fill="#FFFFFF"/>
+  <!-- column dividers on header line -->
+  <line x1="340" y1="180" x2="340" y2="280" stroke="#15171A" stroke-width="16"/>
+  <line x1="466" y1="180" x2="466" y2="280" stroke="#15171A" stroke-width="16"/>
+  <!-- three columns -->
+  <rect x="200" y="330" width="116" height="230" rx="16" fill="none" stroke="#FFFFFF" stroke-width="22"/>
+  <rect x="342" y="330" width="116" height="230" rx="16" fill="none" stroke="#FFFFFF" stroke-width="22"/>
+  <rect x="484" y="330" width="116" height="230" rx="16" fill="none" stroke="#FFFFFF" stroke-width="22"/>
+  <!-- cards inside columns -->
+  <rect x="222" y="360" width="72" height="26" rx="13" fill="#15171A"/>
+  <rect x="222" y="404" width="72" height="13" rx="13" fill="#334155"/>
+  <rect x="364" y="360" width="72" height="26" rx="13" fill="#334155"/>
+  <circle cx="400" cy="452" r="20" fill="#15171A"/>
+  <rect x="506" y="360" width="72" height="13" rx="13" fill="#334155"/>
+  <rect x="506" y="392" width="72" height="26" rx="13" fill="#334155"/>
 </svg>
