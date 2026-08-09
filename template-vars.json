@@ -15,7 +15,7 @@
         "isOptional": true
     },
     "OLLAMA_BASE_URL": {
-        "defaultValue": "${{Ollama.OLLAMA_BASE_URL}}",
+        "defaultValue": "${{ollama/ollama:latest.OLLAMA_BASE_URL}}",
         "description": "Ollama API base URL. Auto-linked to the sibling Ollama service for local LLM inference.",
         "isOptional": true
     }

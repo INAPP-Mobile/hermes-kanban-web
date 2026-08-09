@@ -51,8 +51,7 @@ kanban:
   auto_decompose: true
 model:
   provider: ollama
-  base_url: https://ollama.railway.internal:11434
-  default: qwen3:8b
+  base_url: https://ollamaollamalatest.railway.internal:11434
 YAML
     chmod 644 "${HERMES_HOME}/config.yaml"
     echo "[kanban] wrote initial config.yaml with kanban and Ollama settings"
@@ -64,7 +63,7 @@ else
         echo "" >> "${HERMES_HOME}/config.yaml"
         echo "model:" >> "${HERMES_HOME}/config.yaml"
         echo "  provider: ollama" >> "${HERMES_HOME}/config.yaml"
-        echo "  base_url: https://ollama.railway.internal:11434" >> "${HERMES_HOME}/config.yaml"
+        echo "  base_url: https://ollamaollamalatest.railway.internal:11434" >> "${HERMES_HOME}/config.yaml"
         echo "  default: qwen3:8b" >> "${HERMES_HOME}/config.yaml"
         chmod 644 "${HERMES_HOME}/config.yaml"
     fi
