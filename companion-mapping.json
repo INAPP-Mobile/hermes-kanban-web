@@ -1,0 +1,5 @@
+{
+  "ollama": {
+    "OLLAMA_BASE_URL": "OLLAMA_BASE_URL"
+  }
+}

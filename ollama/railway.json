@@ -1,0 +1,18 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile"
+  },
+  "deploy": {
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 5,
+    "startCommand": "ollama serve & sleep 5 && ollama pull qwen3:8b && wait",
+    "volumeMounts": [
+      {
+        "name": "ollama-models",
+        "mountPath": "/root/.ollama"
+      }
+    ]
+  }
+}

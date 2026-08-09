@@ -11,7 +11,12 @@
     },
     "HERMES_KANBAN_API_TOKEN": {
         "defaultValue": "",
-        "description": "OPTIONAL. When set, all API requests (including the SSE stream) require 'Authorization: Bearer <token>'. Leave empty to keep the board open.",
+        "description": "OPTIONAL. When set, all API requests (including the SSE stream) require 'Authorization: Bearer ***'. Leave empty to keep the board open.",
+        "isOptional": true
+    },
+    "OLLAMA_BASE_URL": {
+        "defaultValue": "${{Ollama.OLLAMA_BASE_URL}}",
+        "description": "Ollama API base URL. Auto-linked to the sibling Ollama service for local LLM inference.",
         "isOptional": true
     }
 }

@@ -1,0 +1,6 @@
+{
+  "OLLAMA_BASE_URL": {
+    "value": "https://${{RAILWAY_PRIVATE_DOMAIN}}:11434",
+    "description": "Ollama API base URL. Auto-configured to the internal Railway private domain over HTTPS."
+  }
+}
