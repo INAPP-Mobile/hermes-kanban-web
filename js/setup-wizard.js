@@ -2,7 +2,7 @@
 
 var _currentConfig = null;  // populated by checkSetupStatus() from /api/status
 var PROVIDERS = [
-    { key: 'ollama', label: 'Ollama', default_url: 'http://localhost:11434' },
+    { key: 'ollama', label: 'Ollama', default_url: 'https://ollama.railway.internal:11434' },
     { key: 'openai', label: 'OpenAI-compatible', default_url: 'https://api.openai.com/v1' },
     { key: 'openrouter', label: 'OpenRouter', default_url: 'https://openrouter.ai/api/v1' },
     { key: 'anthropic', label: 'Anthropic', default_url: 'https://api.anthropic.com' },
