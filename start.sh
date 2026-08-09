@@ -42,13 +42,32 @@ BOARDS_DIR="${KANBAN_DIR}/boards"
 mkdir -p "${BOARDS_DIR}" "${KANBAN_DIR}/stash"
 
 # Seed a minimal config.yaml so the kanban app can read default profile
+# and configure the bundled Ollama companion if no model is set.
 if [ ! -f "${HERMES_HOME}/config.yaml" ]; then
+    # If no config at all, write both kanban and model
     cat > "${HERMES_HOME}/config.yaml" <<YAML
 kanban:
   orchestrator_profile: "default"
   auto_decompose: true
+model:
+  provider: ollama
+  base_url: https://ollama.railway.internal:11434
+  default: qwen3:8b
 YAML
     chmod 644 "${HERMES_HOME}/config.yaml"
+    echo "[kanban] wrote initial config.yaml with kanban and Ollama settings"
+else
+    # If config exists, check if model section is missing and add it
+    if ! grep -q "^model:" "${HERMES_HOME}/config.yaml" 2>/dev/null; then
+        echo "[kanban] no model configured — adding Ollama companion to existing config"
+        # We need to append the model section to the existing YAML.
+        echo "" >> "${HERMES_HOME}/config.yaml"
+        echo "model:" >> "${HERMES_HOME}/config.yaml"
+        echo "  provider: ollama" >> "${HERMES_HOME}/config.yaml"
+        echo "  base_url: https://ollama.railway.internal:11434" >> "${HERMES_HOME}/config.yaml"
+        echo "  default: qwen3:8b" >> "${HERMES_HOME}/config.yaml"
+        chmod 644 "${HERMES_HOME}/config.yaml"
+    fi
 fi
 
 cd /app
