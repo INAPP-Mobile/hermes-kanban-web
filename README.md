@@ -16,17 +16,18 @@ Host your own Hermes Kanban board in minutes with a single click. The template p
 
 [![Deploy to Railway](https://railway.app/button.svg)](https://railway.com/deploy/hermes-kanban-web-1)
 
-Click the button above to deploy this template to Railway. The template creates a single service from the `nousresearch/hermes-kanban-web` Docker image with a persistent volume mounted at `/opt/data` for all board and profile data.
+Click the button above to deploy this template to Railway. The template provisions two services: the **hermes-kanban-web** app (from the `nousresearch/hermes-agent` Docker image) with a persistent volume mounted at `/opt/data` for all board and profile data, plus a companion **Ollama** service (from `ollama/ollama`) with its own volume at `/root/.ollama` for local LLM inference. The app's `OLLAMA_BASE_URL` is auto-linked to the sibling over the internal Railway network.
 
 ## Dependencies for
 
-The template is self-contained: it builds a single Docker service and needs no external databases, caches, or third-party services.
+The template ships with an Ollama companion service ready to run, so it is effectively self-contained: it needs no external databases, caches, or third-party APIs for local LLM inference.
 
 ### Deployment Dependencies
 
-- A Railway account with adequate quota for one small container (Hobby or Pro plan).
-- Provisioned automatically by the template: one service + one persistent volume (`/opt/data`).
-- Optional: an LLM provider (Ollama, OpenAI-compatible, OpenAI, OpenRouter, Anthropic, or Groq) for agent task orchestration. Without one the board still works for manual task tracking.
+- A Railway account with adequate quota for two small containers (Hobby or Pro plan).
+- Provisioned automatically by the template: the **hermes-kanban-web** app service + its persistent volume (`/opt/data`), and the **Ollama** companion service + its persistent volume (`/root/.ollama`).
+- The Ollama service pre-pulls a default model (`qwen3:8b`) on first start so no model download is needed after deploy.
+- Optional: a cloud LLM provider (OpenAI-compatible, OpenAI, OpenRouter, Anthropic, or Groq) for agent task orchestration. Without one, the bundled Ollama instance is used.
 
 ## About Hosting
 
@@ -135,7 +136,9 @@ In Railway, the volume is mounted at `/opt/data` (the default `HERMES_HOME` in t
 
 ## LLM Setup
 
-On a fresh deploy, no LLM provider is configured. When you open the app, a **setup wizard** modal appears automatically. Choose a provider, enter your base URL, model name, and API key (if applicable), then click **Save & Reload**. The wizard writes provider env vars to `/opt/data/.env` and sets the model in `config.yaml` via `hermes config set model`.
+On a fresh Railway deploy, a bundled **Ollama** instance is already running as a companion service. When you open the app, a **setup wizard** modal appears automatically. Choose a provider, enter your base URL, model name, and API key (if applicable), then click **Save & Reload**. The wizard writes provider env vars to `/opt/data/.env` and sets the model in `config.yaml` via `hermes config set model`.
+
+For the bundled Ollama, leave the provider set to **Ollama** — its base URL is auto-wired to the sibling service (`https://ollama.railway.internal:11434`) and the default model `qwen3:8b` is pre-pulled, so you typically only need to confirm the model and click **Save & Reload**.
 
 After setup, the modal will not reappear on subsequent visits. If you need to change your LLM configuration later, re-add the env vars to `/opt/data/.env` (via `railway ssh` or volume mount) and set the model with `hermes config set model <model-name>`.
 
@@ -143,7 +146,7 @@ After setup, the modal will not reappear on subsequent visits. If you need to ch
 
 | Provider | Base URL env | API Key env | Default Base URL |
 |---|---|---|---|
-| Ollama | `OLLAMA_BASE_URL` | *(none)* | `http://localhost:11434` |
+| Ollama | `OLLAMA_BASE_URL` | *(none)* | bundled sibling: `https://ollama.railway.internal:11434` |
 | OpenAI | `OPENAI_BASE_URL` | `OPENAI_API_KEY` | `https://api.openai.com/v1` |
 | OpenRouter | `OPENAI_BASE_URL` | `OPENAI_API_KEY` | `https://openrouter.ai/api/v1` |
 | Anthropic | `ANTHROPIC_BASE_URL` | `ANTHROPIC_API_KEY` | `https://api.anthropic.com` |
@@ -155,7 +158,9 @@ After setup, the modal will not reappear on subsequent visits. If you need to ch
 You can also set these directly on the Railway service via the Railway dashboard or CLI:
 
 ```bash
-# Example: configure Ollama
+# The bundled Ollama companion is already configured — this is only needed
+# to point at a different Ollama instance or model.
+# Example: switch to a custom Ollama host
 railway variables set \
   OLLAMA_BASE_URL=http://host.docker.internal:11434 \
   HERMES_HOME=/opt/data
@@ -171,4 +176,5 @@ railway ssh -- sh -c 'hermes config set model qwen3:8b'
 - **Hermes CLI dependency**: Task operations, profile management, and board settings shell out to the `hermes` CLI via `subprocess.run`. The `hermes` binary is provided by the `nousresearch/hermes-agent` base image's venv.
 - **SSE over WebSocket**: The frontend uses `EventSource` to connect to `GET /api/events/stream` for real-time updates. This is an in-process SSE stream that polls board SQLite databases — no external gateway connection required.
 - **SQLite WAL mode**: All board databases use WAL journal mode with idempotent schema migrations.
-- **Single container**: The kanban web app runs as the sole process inside the Hermes agent container. s6-overlay's `/init` (PID 1) manages the process lifecycle and reaps zombies.
+- **Single process per app container**: The kanban web app runs as the sole process inside the Hermes agent container. s6-overlay's `/init` (PID 1) manages the process lifecycle and reaps zombies.
+- **Ollama companion service**: A separate `ollama/ollama` container runs alongside the app on the internal Railway network, serving `https://ollama.railway.internal:11434`. It persists models at `/root/.ollama` and pre-pulls `qwen3:8b` on first start. The app reaches it via `OLLAMA_BASE_URL`, which the template auto-links to the sibling service.
