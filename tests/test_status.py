@@ -46,6 +46,38 @@ async def test_status_with_model_and_provider():
 
 
 @pytest.mark.asyncio
+async def test_status_model_dict_form_detected():
+    """config.yaml uses the CLI dict form (model: {provider, default, base_url})
+    and the provider base URL lives in the .env FILE, not os.environ. This is the
+    exact post-setup layout on Railway; previously the wizard re-opened because
+    llm_configured stayed False (dict .strip() raised, swallowed to '')."""
+    import yaml
+    home = os.environ["HERMES_HOME"]
+    cfg_path = os.path.join(home, "config.yaml")
+    with open(cfg_path, "w") as f:
+        yaml.safe_dump({
+            "model": {
+                "provider": "ollama",
+                "default": "qwen3:8b",
+                "base_url": "https://ollama.railway.internal:11434",
+            }
+        }, f)
+
+    env_path = os.path.join(home, ".env")
+    with open(env_path, "w") as f:
+        f.write("OLLAMA_BASE_URL=https://ollama.railway.internal:11434\n")
+
+    client = TestClient(app)
+    res = client.get("/api/status")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["llm_configured"] is True
+    assert data["model"] == "qwen3:8b"
+    assert data["provider_key"] == "ollama"
+    assert data["base_url"] == "https://ollama.railway.internal:11434"
+
+
+@pytest.mark.asyncio
 async def test_status_provider_in_envfile():
     """Provider key absent from env but present in ~/.hermes/.env -> configured."""
     import yaml

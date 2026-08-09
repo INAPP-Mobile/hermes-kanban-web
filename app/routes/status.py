@@ -37,42 +37,85 @@ def _config_path():
     return os.environ.get("HERMES_CONFIG_PATH") or os.path.join(hermes_home, "config.yaml")
 
 
+def _merged_env(hermes_home):
+    """Return os.environ overlaid with the runtime .env file (file wins), so
+    provider settings written by /api/setup are seen immediately without a
+    container restart."""
+    env = dict(os.environ)
+    # Mirrors app/routes/setup.py::_env_path: the .env sits as a sibling of
+    # config.yaml (i.e. under HERMES_CONFIG_PATH's dir when that is set).
+    cfg = os.environ.get("HERMES_CONFIG_PATH") or os.path.join(hermes_home, "config.yaml")
+    env_path = os.path.join(os.path.dirname(cfg), ".env")
+    if not os.path.exists(env_path):
+        return env
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, val = line.partition("=")
+            key = key.strip()
+            if key:
+                env[key] = val.strip()
+    return env
+
+
+def _model_from_config(config_path):
+    """Extract the model name from config.yaml, handling both the legacy string
+    form (`model: qwen3:8b`) and the CLI dict form
+    (`model: {provider:…, default: qwen3:8b, base_url:…}`)."""
+    if not config_path or not os.path.exists(config_path):
+        return ""
+    try:
+        with open(config_path) as f:
+            cfg = yaml.safe_load(f) or {}
+    except Exception:
+        return ""
+    raw = cfg.get("model")
+    if isinstance(raw, dict):
+        return str(raw.get("default") or raw.get("name") or "").strip()
+    if isinstance(raw, str):
+        return raw.strip()
+    return ""
+
+
 def _env_file_has_provider(hermes_home):
-    env_path = os.path.join(hermes_home, ".env")
+    """True if the runtime .env FILE (not os.environ) sets any provider key."""
+    # Mirrors app/routes/setup.py::_env_path: the .env sits as a sibling of
+    # config.yaml.
+    cfg = os.environ.get("HERMES_CONFIG_PATH") or os.path.join(hermes_home, "config.yaml")
+    env_path = os.path.join(os.path.dirname(cfg), ".env")
     if not os.path.exists(env_path):
         return False
     with open(env_path) as f:
         for line in f:
-            if "=" in line and not line.startswith("#"):
-                key = line.partition("=")[0].strip()
-                if any(key == k or key.startswith(k + "_") or key.startswith(p + "_")
-                       for k in _PROVIDER_ENV_KEYS
-                       for p in _PROVIDER_KEY_PREFIXES):
-                    return True
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key = line.partition("=")[0].strip()
+            if any(key == k or key.startswith(k + "_") or key.startswith(p + "_")
+                   for k in _PROVIDER_ENV_KEYS
+                   for p in _PROVIDER_KEY_PREFIXES):
+                return True
     return False
 
 
 def _detect_current_config(hermes_home):
     """Return (provider_key, base_url, model) from current env/config."""
     config_path = _config_path()
-    model = ""
-    if config_path and os.path.exists(config_path):
-        try:
-            with open(config_path) as f:
-                cfg = yaml.safe_load(f) or {}
-            model = (cfg.get("model") or "").strip()
-        except Exception:
-            pass
+    model = _model_from_config(config_path)
 
-    # Detect provider by checking which group has a key/url set
+    # Detect provider against merged env (os.environ + .env file) so that a
+    # freshly saved setup is recognized on the next page reload.
+    env = _merged_env(hermes_home)
     for pk, (url_var, key_var) in _PROVIDER_MAP.items():
-        url_val = os.environ.get(url_var, "") or ""
-        key_val = os.environ.get(key_var, "") or ""
+        url_val = env.get(url_var, "") or ""
+        key_val = env.get(key_var, "") or ""
         if url_val.strip() and not url_val.startswith("#"):
             return pk, url_val.strip(), model
         if key_val.strip() and not key_val.startswith("#"):
             # For openrouter without explicit base_url, use default
-            base = os.environ.get(url_var, _OPENROUTER_DEFAULT) or _OPENROUTER_DEFAULT
+            base = env.get(url_var, _OPENROUTER_DEFAULT) or _OPENROUTER_DEFAULT
             return pk, base.strip(), model
 
     return "", "", model
