@@ -71,7 +71,7 @@ App.chooseProvider = function(p, e) {
         (p.key === 'openrouter' ? '<p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">OpenRouter provides a unified API for 50+ models. Your key stays local.</p>' : '') +
         '<label>Base URL</label><input type="text" id="setupBaseUrl" value="' + currentBaseUrl + '" style="width:100%;margin-bottom:8px;" placeholder="' + p.default_url + '">' +
         '<label>Model</label><input type="text" id="setupModel" value="' + (currentModel || '') + '" style="width:100%;margin-bottom:8px;" placeholder="' + (p === PROVIDERS[0] ? 'e.g. qwen3:8b' : 'e.g. gpt-4o') + '">' +
-        (p.key !== 'ollama' ? '<label>API Key</label><input type="password" id="setupApiKey" style="width:100%;margin-bottom:12px;" placeholder="Enter your API key...">' : '') +
+        '<label>API Key</label><input type="password" id="setupApiKey" style="width:100%;margin-bottom:12px;" placeholder="Enter your API key (for Ollama cloud models)...">' +
         '<label>Profile Name</label><input type="text" id="setupProfile" value="' + currentProfile + '" style="width:100%;margin-bottom:16px;">' +
         '<button onclick="App.saveSetup(\'' + p.key.replace(/'/g, "\\'") + '\')" class="btn-save-setup">Save \u2022 Reload</button>' +
         '</div>';
