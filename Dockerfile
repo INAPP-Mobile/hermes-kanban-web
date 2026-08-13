@@ -17,13 +17,39 @@ COPY --chown=hermes:hermes . /app/
 # Ensure the kanban app entry point is executable
 RUN chmod +x /app/start.sh
 
+# --- Web terminal + process supervision + reverse proxy (hexo-template parity) ---
+# nginx fronts the public PORT and routes /terminal/ to ttyd behind HTTP
+# Basic Auth; supervisord supervises nginx, uvicorn, the gateway and ttyd.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends nginx supervisor apache2-utils \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -f /etc/nginx/sites-enabled/default
+
+# ttyd 1.7.7 (web terminal, static binary)
+RUN curl -fsSL https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 -o /usr/local/bin/ttyd \
+ && chmod +x /usr/local/bin/ttyd
+
+# ttyd launcher (injects basic-auth credential from env when set) + banner shell
+COPY start-ttyd.sh /usr/local/bin/start-ttyd.sh
+COPY terminal-shell.sh /usr/local/bin/terminal-shell.sh
+RUN chmod +x /usr/local/bin/start-ttyd.sh /usr/local/bin/terminal-shell.sh
+
+# nginx runtime config (rendered at boot with $PORT) + supervisord programs
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
+COPY supervisord.conf /etc/supervisor/supervisord.conf
+# Root boot hook: renders nginx.conf and writes /etc/nginx/.htpasswd for /terminal/
+COPY cont-init-nginx.sh /etc/cont-init.d/90-kanban-nginx
+RUN chmod +x /etc/cont-init.d/90-kanban-nginx
+
 # HERMES_HOME is the canonical data root in the base image (/opt/data).
 # The kanban app reads config from $HERMES_HOME and shells out to `hermes`.
 ENV HERMES_HOME=/opt/data \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-# The app serves the port Railway injects via $PORT. Default fallback is 8502.
+# nginx fronts the port Railway injects via $PORT (rendered at boot into
+# nginx.conf). Default fallback is 8502. Keep PORT above 1024 — nginx runs
+# as the non-root hermes user.
 EXPOSE 8502
 
 # Healthcheck: the root path serves index.html with a 200.
@@ -35,5 +61,5 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
 # it directly (dropping to the hermes user). /app/start.sh is executable and
 # runs as hermes — the s6-overlay /init PID 1 manages the process and
 # reaps zombies.
-# Build cache bust: auth UI added 2026-08-07
+# Build cache bust: web terminal (nginx + ttyd + supervisord) added 2026-08-13
 CMD ["/app/start.sh"]

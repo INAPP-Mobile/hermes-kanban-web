@@ -3,6 +3,14 @@
         "value": "8502",
         "description": "HTTP port Railway routes to. Railway injects this automatically."
     },
+    "ADMIN_USERNAME": {
+        "value": "admin",
+        "description": "Username for the /terminal/ web terminal basic-auth gate."
+    },
+    "ADMIN_PASSWORD": {
+        "value": "${{secret(16)}}",
+        "description": "Password for the /terminal/ web terminal basic-auth gate."
+    },
     "HERMES_HOME": {
         "value": "/opt/data",
         "description": "Root directory for all Hermes persistent state (boards, profiles, config). Mounted as a Railway volume."

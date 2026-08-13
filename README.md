@@ -1,6 +1,6 @@
 # Hermes Kanban Web
 
-A web-based Kanban board for managing Hermes agent tasks. Features drag-and-drop task management, live event streaming via Server-Sent Events (SSE), dark/light mode, stash/restore, multi-board support, and a profile manager — all backed by a shared persistent volume with the Hermes agent.
+A web-based Kanban board for managing Hermes agent tasks. Features drag-and-drop task management, live event streaming via Server-Sent Events (SSE), dark/light mode, stash/restore, multi-board support, a profile manager, and a built-in web terminal with the full `hermes` CLI — all backed by a shared persistent volume with the Hermes agent.
 
 ## Screenshots
 
@@ -10,47 +10,44 @@ A web-based Kanban board for managing Hermes agent tasks. Features drag-and-drop
 
 # Deploy and Host
 
-Host your own Hermes Kanban board in minutes with a single click. The template provisions a FastAPI + vanilla JS single-page application running inside the official `nousresearch/hermes-agent` Docker image, with SSH-free persistent storage for all board and profile data.
+Host your own Hermes Kanban board in minutes with a single click. The template provisions a FastAPI + vanilla JS single-page application running inside the official `nousresearch/hermes-agent` Docker image, with SSH-free persistent storage for all board and profile data plus a ttyd web terminal at `/terminal/`.
 
 ## Deploy to Railway
 
 [![Deploy to Railway](https://railway.app/button.svg)](https://railway.com/deploy/hermes-kanban-web-1)
 
-Click the button above to deploy this template to Railway. The template provisions two services: the **hermes-kanban-web** app (from the `nousresearch/hermes-agent` Docker image) with a persistent volume mounted at `/opt/data` for all board and profile data, plus a companion **Ollama** service (from `ollama/ollama`) with its own volume at `/root/.ollama` for local LLM inference. The app's `OLLAMA_BASE_URL` is auto-linked to the sibling over the internal Railway network.
+Click the button above to deploy this template to Railway. The template provisions two services: the **hermes-kanban-web** app (from the `nousresearch/hermes-agent` Docker image) with a persistent volume at `/opt/data`, plus a companion **Ollama** service (from `ollama/ollama`) with a volume at `/root/.ollama` for local LLM inference. The app's `OLLAMA_BASE_URL` is auto-linked to the sibling over the internal Railway network.
 
 ## Dependencies for
 
-The template ships with an Ollama companion service ready to run, so it is effectively self-contained: it needs no external databases, caches, or third-party APIs for local LLM inference.
+The template is self-contained: it needs no external databases, caches, or third-party APIs for local LLM inference.
 
 ### Deployment Dependencies
 
 - A Railway account with adequate quota for two small containers (Hobby or Pro plan).
-- Provisioned automatically by the template: the **hermes-kanban-web** app service + its persistent volume (`/opt/data`), and the **Ollama** companion service + its persistent volume (`/root/.ollama`).
-- The Ollama service pre-pulls a default model (`qwen3:8b`) on first start so no model download is needed after deploy.
-- Optional: a cloud LLM provider (OpenAI-compatible, OpenAI, OpenRouter, Anthropic, or Groq) for agent task orchestration. Without one, the bundled Ollama instance is used.
+- Provisioned automatically: the **hermes-kanban-web** app service + persistent volume (`/opt/data`), and the **Ollama** companion service + persistent volume (`/root/.ollama`), which pre-pulls `qwen3:8b` on first start.
+- Optional: a cloud LLM provider (OpenAI-compatible, OpenAI, OpenRouter, Anthropic, or Groq) instead of the bundled Ollama.
 
 ## About Hosting
 
-The app runs **inside the `nousresearch/hermes-agent` Docker image**, so the `hermes` CLI is available on PATH and all persistent state (boards, profiles, config) lives under `HERMES_HOME` (`/opt/data`) on a Railway volume shared with the Hermes agent runtime. Because the data lives on a persistent volume, your boards, profiles, stashed cards and theme survive redeploys and restarts.
+The app runs **inside the `nousresearch/hermes-agent` Docker image**, so the `hermes` CLI is on PATH and all persistent state (boards, profiles, config) lives under `HERMES_HOME` (`/opt/data`) on a Railway volume shared with the Hermes agent runtime. Boards, profiles, stashed cards and theme survive redeploys and restarts.
 
 ## Why Deploy
 
 - **Zero-config self-hosting** — one-click deploy, persistent volume provided, no external services to wire up.
 - **AI-agent-aware task board** — task lifecycle operations shell out to the real `hermes` CLI, so the board you manage is the same system your agents run on.
-- **Real-time by default** — SSE keeps multiple browser tabs in sync without polling or manual refresh.
-- **Optional auth** — lock the board behind a bearer token in a single environment variable; leave it empty for an open, shared team board.
-- **Private by design** — your tasks, profiles and agent config stay on data you control, not on a shared SaaS backend.
+- **Real-time by default** — SSE keeps multiple browser tabs in sync without polling.
+- **Optional auth** — lock the board behind a bearer token in one env var; leave it empty for an open team board.
+- **Built-in web terminal** — run `hermes` CLI maintenance commands right from the browser at `/terminal/`.
 
 ## Common Use Cases
 
 - Managing and visually tracking Hermes agent task queues across Todo, Ready, In Progress, Blocked, and Done.
-- A lightweight team kanban that reuses existing Hermes profiles and config instead of standing up a separate issue tracker.
-- Monitoring active agent workers with real-time PID liveness checks.
-- Stashing WIP cards locally and restoring them later, or quick drag-to-trash cleanup.
+- A lightweight team kanban that reuses existing Hermes profiles and config instead of a separate issue tracker.
 
 # Overview
 
-Hermes Kanban Web is a FastAPI + vanilla JS single-page application that provides a browser-based UI for managing Hermes agent tasks. It serves as a frontend for the Hermes agent ecosystem: boards are stored as SQLite databases, task creation/status changes/comments/archive operations shell out to the `hermes` CLI, and real-time updates are delivered via SSE.
+Hermes Kanban Web is a FastAPI + vanilla JS single-page application providing a browser-based UI for Hermes agent tasks. Boards are SQLite databases, task lifecycle operations shell out to the `hermes` CLI, and real-time updates stream via SSE.
 
 ## Features
 
@@ -63,46 +60,26 @@ Hermes Kanban Web is a FastAPI + vanilla JS single-page application that provide
 - **Dependency tracking** — parent/child task links with clickable navigation
 - **Active worker monitoring** — real-time PID liveness checks on running task workers
 - **Hermes CLI integration** — all task lifecycle operations (create, promote, block, complete, schedule, archive, comment) delegate to the `hermes` CLI
+- **Web terminal** — a ttyd terminal at `/terminal/` (HTTP Basic Auth) gives you a bash shell with the full `hermes` CLI on PATH for maintenance
 
 ## Authentication (optional)
 
-By default the board is **open with no authentication**. To protect the API you can set the `HERMES_KANBAN_API_TOKEN` environment variable (via the Railway Vars tab):
+By default the board is **open with no authentication**. To protect the API, set `HERMES_KANBAN_API_TOKEN` (Railway Vars tab): leave it empty for an open board, or set it to a secret value and every API request (including the live SSE stream) must send `Authorization: Bearer <token>`. Generate one with `openssl rand -hex 32`.
 
-- **Open (default):** leave the token empty — any request is allowed.
-- **Protected:** set `HERMES_KANBAN_API_TOKEN` to a secret value. Every API request (including the live SSE stream) must then send `Authorization: Bearer ***`
+## Web Terminal
 
-Generate a strong token with `openssl rand -hex 32`.
+A **ttyd** web terminal is available at **`/terminal/`** (or `https://<your-app>.up.railway.app/terminal/`), protected by **HTTP Basic Auth**:
+
+- Credentials come from `ADMIN_USERNAME` / `ADMIN_PASSWORD` (the template generates a random `ADMIN_PASSWORD` by default — read it in the Railway Variables tab after deploy; if empty at boot, a random one is printed to the container logs).
+- The shell is bash, running as the `hermes` user with `HERMES_HOME=/opt/data`, and the full **`hermes` CLI is on PATH** — e.g. `hermes kanban boards list`, `hermes kanban task --board <slug> --create "..."`, `hermes profile list`. A welcome banner lists the most useful commands.
+
+Architecture: nginx (the public `PORT`) routes `/` to the FastAPI app (uvicorn on `127.0.0.1:12700`) and `/terminal/` to ttyd (`127.0.0.1:7681`) behind `auth_basic`; supervisord supervises nginx, uvicorn, the Hermes gateway, and ttyd. The terminal is never exposed directly.
 
 ## Self-hosting (Docker)
 
 ```bash
-docker run -d \
-  --name hermes-kanban-web \
-  -p 8502:8502 \
-  -e PORT=8502 \
-  -e HERMES_HOME=/opt/data \
-  -v hermes-data:/opt/data \
-  ghcr.io/inapp-mobile/hermes-kanban-web:latest
+docker run -d --name hermes-kanban-web -p 8502:8502 -e PORT=8502 -e HERMES_HOME=/opt/data -v hermes-data:/opt/data ghcr.io/inapp-mobile/hermes-kanban-web:latest
 ```
-
-## Local Development
-
-```bash
-# Clone the repo
-git clone https://github.com/INAPP-Mobile/hermes-kanban-web.git
-cd hermes-kanban-web
-
-# Install dependencies (requires Python 3.11+)
-pip install fastapi uvicorn pydantic httpx pyyaml
-
-# The app shells out to `hermes` CLI — ensure it's on PATH
-# or set HERMES_HOME to an existing ~/.hermes or /opt/data directory
-
-# Run locally
-./start.sh
-```
-
-The app runs on http://localhost:8502.
 
 # Configuration
 
@@ -110,7 +87,9 @@ The app runs on http://localhost:8502.
 
 | Variable | Default | Description |
 |---|---|---|
-| `PORT` | `8502` | HTTP port the app binds to (Railway injects this automatically) |
+| `PORT` | `8502` | HTTP port nginx listens on (Railway injects this automatically) |
+| `ADMIN_USERNAME` | `admin` | Username for the `/terminal/` web terminal basic-auth gate |
+| `ADMIN_PASSWORD` | *(generated)* | Password for the `/terminal/` web terminal basic-auth gate |
 | `HERMES_HOME` | `/opt/data` | Root directory for all Hermes persistent state (boards, profiles, config) |
 | `HOME` | `$HERMES_HOME` | Set to match HERMES_HOME so `~` resolves to the volume |
 | `HERMES_KANBAN_API_TOKEN` | *(empty)* | Optional bearer token. When set, all API requests require `Authorization: Bearer <token>`. |
@@ -132,49 +111,24 @@ HERMES_HOME/
 │   └── theme.json       # Dark/light theme preference
 ```
 
-In Railway, the volume is mounted at `/opt/data` (the default `HERMES_HOME` in the base image). The `start.sh` wrapper ensures `kanban/boards/`, `kanban/stash/` subdirectories exist and seeds a minimal `config.yaml` if none is present.
+In Railway, the volume is mounted at `/opt/data` (the default `HERMES_HOME` in the base image). `start.sh` ensures `kanban/boards/` and `kanban/stash/` exist and seeds a minimal `config.yaml` if none is present.
 
 ## LLM Setup
 
-On a fresh Railway deploy, a bundled **Ollama** instance is already running as a companion service. When you open the app, a **setup wizard** modal appears automatically. Choose a provider, enter your base URL, model name, and API key (if applicable), then click **Save & Reload**. The wizard writes provider env vars to `/opt/data/.env` and sets the model in `config.yaml` via `hermes config set model`.
-
-For the bundled Ollama, leave the provider set to **Ollama** — its base URL is auto-wired to the sibling service (`https://ollama.railway.internal:11434`) and the default model `qwen3:8b` is pre-pulled, so you typically only need to confirm the model and click **Save & Reload**.
-
-After setup, the modal will not reappear on subsequent visits. If you need to change your LLM configuration later, re-add the env vars to `/opt/data/.env` (via `railway ssh` or volume mount) and set the model with `hermes config set model <model-name>`.
+A bundled **Ollama** companion service runs on deploy (pre-pulled `qwen3:8b`), and a **setup wizard** appears on first open. Pick a provider, base URL, model, and API key (if any), then **Save & Reload**. The wizard writes provider env vars to `/opt/data/.env` and sets the model via `hermes config set model`. For the bundled Ollama the base URL is already wired to `https://ollama.railway.internal:11434` — just confirm the model. The modal won't reappear after setup; to change the LLM later, edit `/opt/data/.env` and run `hermes config set model <model>`.
 
 ### Supported Providers
 
-| Provider | Base URL env | API Key env | Default Base URL |
-|---|---|---|---|
-| Ollama | `OLLAMA_BASE_URL` | *(none)* | bundled sibling: `https://ollama.railway.internal:11434` |
-| OpenAI | `OPENAI_BASE_URL` | `OPENAI_API_KEY` | `https://api.openai.com/v1` |
-| OpenRouter | `OPENAI_BASE_URL` | `OPENAI_API_KEY` | `https://openrouter.ai/api/v1` |
-| Anthropic | `ANTHROPIC_BASE_URL` | `ANTHROPIC_API_KEY` | `https://api.anthropic.com` |
-| Groq | `GROQ_BASE_URL` | `GROQ_API_KEY` | `https://api.groq.com/openai/v1` |
-| DeepSeek | `DEEPSEEK_BASE_URL` | `DEEPSEEK_API_KEY` | `https://api.deepseek.com/v1` |
+Ollama, OpenAI, OpenRouter, Anthropic, Groq, and DeepSeek — each maps to its own base-URL/API-key env vars (e.g. `OLLAMA_BASE_URL`, `OPENAI_BASE_URL`, `OPENAI_API_KEY`) written to `/opt/data/.env`.
 
 ### Advanced: Manual Configuration
 
-You can also set these directly on the Railway service via the Railway dashboard or CLI:
-
-```bash
-# The bundled Ollama companion is already configured — this is only needed
-# to point at a different Ollama instance or model.
-# Example: switch to a custom Ollama host
-railway variables set \
-  OLLAMA_BASE_URL=http://host.docker.internal:11434 \
-  HERMES_HOME=/opt/data
-railway variables set --secret HERMES_MODEL=qwen3:8b
-# Then set the model in config.yaml:
-railway ssh -- sh -c 'hermes config set model qwen3:8b'
-```
-
-> **Note**: Setting env vars on the service only takes effect after a redeploy (the running uvicorn process does not hot-reload `.env`). The wizard handles this by requiring a page reload after save.
+To point at a different Ollama host/model instead of the bundled companion: set `OLLAMA_BASE_URL` / `HERMES_MODEL` via `railway variables set`, then `railway ssh -- sh -c 'hermes config set model qwen3:8b'`. Env changes take effect after a redeploy (uvicorn does not hot-reload `.env`); the wizard instead reloads the page after save.
 
 # Architecture Notes
 
-- **Hermes CLI dependency**: Task operations, profile management, and board settings shell out to the `hermes` CLI via `subprocess.run`. The `hermes` binary is provided by the `nousresearch/hermes-agent` base image's venv.
-- **SSE over WebSocket**: The frontend uses `EventSource` to connect to `GET /api/events/stream` for real-time updates. This is an in-process SSE stream that polls board SQLite databases — no external gateway connection required.
+- **Hermes CLI dependency**: Task operations, profile management, and board settings shell out to the `hermes` CLI via `subprocess.run` (from the base image's venv).
+- **SSE over WebSocket**: The frontend uses `EventSource` on `GET /api/events/stream`; an in-process stream polls board SQLite databases — no external gateway connection required.
 - **SQLite WAL mode**: All board databases use WAL journal mode with idempotent schema migrations.
-- **Single process per app container**: The kanban web app runs as the sole process inside the Hermes agent container. s6-overlay's `/init` (PID 1) manages the process lifecycle and reaps zombies.
-- **Ollama companion service**: A separate `ollama/ollama` container runs alongside the app on the internal Railway network, serving `https://ollama.railway.internal:11434`. It persists models at `/root/.ollama` and pre-pulls `qwen3:8b` on first start. The app reaches it via `OLLAMA_BASE_URL`, which the template auto-links to the sibling service.
+- **Four supervised processes**: nginx (public proxy on `$PORT`), uvicorn (app on `127.0.0.1:12700`), the Hermes gateway (embedded kanban dispatcher), and ttyd (web terminal on `127.0.0.1:7681`) run under **supervisord**; s6-overlay's `/init` (PID 1) manages lifecycle and reaps zombies, and a `cont-init.d` boot hook renders nginx.conf from `$PORT` and writes the `/terminal/` htpasswd.
+- **Ollama companion service**: A separate `ollama/ollama` container runs alongside on the internal Railway network at `https://ollama.railway.internal:11434`, persists models at `/root/.ollama`, and pre-pulls `qwen3:8b` on first start. The app reaches it via `OLLAMA_BASE_URL`, auto-linked to the sibling.
