@@ -57,7 +57,7 @@ http {
         # auth-header check (nginx injects X-Auth-User) plus the AuthToken
         # first-message check, where the token only comes from the
         # auth-protected /terminal/token endpoint.
-        location /terminal/ {
+        location /terminal {
             auth_basic "Hermes Kanban terminal";
             auth_basic_user_file /etc/nginx/.htpasswd;
             proxy_set_header X-Auth-User $remote_user;
