@@ -29,6 +29,15 @@ if [ "$(id -u)" = 0 ]; then
             chown -R hermes:hermes "/opt/data/$sub" 2>/dev/null || true
         fi
     done
+    # Railway direct-start mode skips the s6-overlay cont-init hook that
+    # renders nginx.conf and the /terminal/ .htpasswd. Run it here as root so
+    # supervisord's nginx (running as hermes) gets the /tmp-logging config
+    # instead of the stock Debian one, which fails with "Permission denied"
+    # on root-owned /var/log/nginx/error.log.
+    if [ -f /etc/cont-init.d/90-kanban-nginx ]; then
+        echo "[kanban] rendering nginx.conf + .htpasswd (Railway direct-start)"
+        sh /etc/cont-init.d/90-kanban-nginx
+    fi
     echo "[kanban] dropping to hermes user"
     exec /command/s6-setuidgid hermes "$0" "$@"
 fi
