@@ -28,6 +28,14 @@ else
 fi
 chmod 644 /etc/nginx/.htpasswd
 
+# Persist the plaintext credential for ttyd (-c): the WS upgrade path cannot
+# use nginx auth_basic (browsers don't send cached basic auth on WebSocket
+# handshakes), so ttyd enforces its own AuthToken check with the same
+# credential. Read by /usr/local/bin/start-ttyd.sh.
+printf '%s:%s\n' "$ADMIN_USERNAME" "$ADMIN_PASSWORD" > /etc/nginx/.ttyd-credential
+chmod 600 /etc/nginx/.ttyd-credential
+chown root:hermes /etc/nginx/.ttyd-credential 2>/dev/null || chmod 644 /etc/nginx/.ttyd-credential
+
 # Writable runtime dirs for the non-root nginx (hermes user)
 mkdir -p /tmp/nginx-client-temp /tmp/nginx-proxy-temp /tmp/nginx-fastcgi-temp /tmp/nginx-uwsgi-temp /tmp/nginx-scgi-temp
 chown hermes:hermes /tmp/nginx-client-temp /tmp/nginx-proxy-temp /tmp/nginx-fastcgi-temp /tmp/nginx-uwsgi-temp /tmp/nginx-scgi-temp 2>/dev/null || true
