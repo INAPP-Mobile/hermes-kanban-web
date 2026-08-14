@@ -13,7 +13,7 @@
         "volumeMounts": [
             {
                 "name": "hermes-data",
-                "mountPath": "/opt"
+                "mountPath": "/opt/data"
             }
         ]
     }
