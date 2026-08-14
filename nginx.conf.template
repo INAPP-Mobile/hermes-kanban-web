@@ -1,6 +1,6 @@
 # Hermes Kanban Web router — one public URL, two upstreams:
 #   /          -> uvicorn (FastAPI kanban app, 127.0.0.1:12700)
-#   /terminal/ -> ttyd web terminal (127.0.0.1:7681, HTTP Basic Auth)
+#   /ttyd/     -> ttyd web terminal (127.0.0.1:7681, HTTP Basic Auth)
 #
 # Generated at boot by /etc/cont-init.d/90-kanban-nginx from
 # /etc/nginx/nginx.conf.template (__PORT__ is substituted with $PORT).
@@ -50,8 +50,8 @@ http {
         }
 
         # ttyd web terminal (WebSocket upgrade, HTTP Basic Auth)
-        # Main /tty/ location: serves the page + /tty/token endpoint behind auth_basic
-        location /tty/ {
+        # Main /ttyd/ location: serves the page + /ttyd/token endpoint behind auth_basic
+        location /ttyd/ {
             auth_basic "Hermes Kanban terminal";
             auth_basic_user_file /etc/nginx/.htpasswd;
             proxy_pass http://127.0.0.1:7681/;
@@ -68,7 +68,7 @@ http {
         # WebSocket upgrade path: no auth_basic (browsers don't send cached Basic
         # creds on WS handshake). Instead, inject X-Auth-User header so ttyd's
         # proxy-auth mode (-H X-Auth-User) can verify the authenticated user.
-        location = /tty/ws {
+        location = /ttyd/ws {
             auth_basic off;
             proxy_pass http://127.0.0.1:7681/ws;
             proxy_http_version 1.1;
