@@ -17,16 +17,22 @@
 set -e
 
 if [ "$(id -u)" = 0 ]; then
-    echo "[kanban] running as root — ensuring /opt/data ownership for hermes"
-    mkdir -p /opt/data
-    chown hermes:hermes /opt/data 2>/dev/null || \
-        echo "[kanban] warning: chown /opt/data failed (rootless container?) — continuing"
+    echo "[kanban] running as root — ensuring /opt ownership for hermes"
+    mkdir -p /opt/data /opt/hermes
+    chown hermes:hermes /opt 2>/dev/null || \
+        echo "[kanban] warning: chown /opt failed (rootless container?) — continuing"
+    chown hermes:hermes /opt/data /opt/hermes 2>/dev/null || true
     # Top-level files (config.yaml, auth.json, .env, …) written by a previous
     # root run must become hermes-owned too, else the CLI hits EACCES on them.
-    find /opt/data -maxdepth 1 -type f -exec chown hermes:hermes {} + 2>/dev/null || true
+    find /opt -maxdepth 1 -type f -exec chown hermes:hermes {} + 2>/dev/null || true
     for sub in cron sessions logs hooks memories skills skins plans workspace home profiles kanban; do
         if [ -e "/opt/data/$sub" ]; then
             chown -R hermes:hermes "/opt/data/$sub" 2>/dev/null || true
+        fi
+    done
+    for sub in agent bin cli.py config.yaml profiles skills plugins cron memories skins plans workspace home; do
+        if [ -e "/opt/hermes/$sub" ]; then
+            chown -R hermes:hermes "/opt/hermes/$sub" 2>/dev/null || true
         fi
     done
     # Railway direct-start mode skips the s6-overlay cont-init hook that
