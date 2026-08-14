@@ -50,6 +50,7 @@ http {
         }
 
         # ttyd web terminal (WebSocket upgrade, HTTP Basic Auth)
+        # Main /terminal/ location: serves the page + /terminal/token endpoint behind auth_basic
         location /terminal/ {
             auth_basic "Hermes Kanban terminal";
             auth_basic_user_file /etc/nginx/.htpasswd;
@@ -61,6 +62,23 @@ http {
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_read_timeout 86400;
+        }
+
+        # WebSocket upgrade path: no auth_basic (browsers don't send cached Basic
+        # creds on WS handshake). Instead, inject X-Auth-User header so ttyd's
+        # proxy-auth mode (-H X-Auth-User) can verify the authenticated user.
+        location = /terminal/ws {
+            auth_basic off;
+            proxy_pass http://127.0.0.1:7681/ws;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Auth-User $remote_user;
             proxy_read_timeout 86400;
         }
     }
