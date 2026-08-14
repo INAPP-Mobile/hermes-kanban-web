@@ -35,12 +35,12 @@ if [ "$(id -u)" = 0 ]; then
     # blew Railway's healthcheck window). Just chown the top dir defensively.
     chown hermes:hermes /opt/hermes 2>/dev/null || true
     # Railway direct-start mode skips the s6-overlay cont-init hook that
-    # renders nginx.conf and the /terminal/ .htpasswd. Run it here as root so
+    # renders nginx.conf and the /kanban-terminal/ .ttyd-credential. Run it here as root so
     # supervisord's nginx (running as hermes) gets the /tmp-logging config
     # instead of the stock Debian one, which fails with "Permission denied"
     # on root-owned /var/log/nginx/error.log.
     if [ -f /etc/cont-init.d/90-kanban-nginx ]; then
-        echo "[kanban] rendering nginx.conf + .htpasswd (Railway direct-start)"
+        echo "[kanban] rendering nginx.conf + .ttyd-credential (Railway direct-start)"
         sh /etc/cont-init.d/90-kanban-nginx
     fi
     echo "[kanban] dropping to hermes user"
@@ -94,11 +94,10 @@ fi
 
 # Hand off to supervisord, which supervises the four runtime processes
 # (all as the hermes user):
-#   nginx   — public proxy on $PORT; routes / to the app, /terminal/ to ttyd
+#   nginx   — public proxy on $PORT; routes / to the app, /kanban-terminal/ to ttyd
 #   uvicorn — kanban FastAPI app on 127.0.0.1:12700 (loopback only)
 #   gateway — hermes gateway run (embedded kanban dispatcher); log under
 #             HERMES_HOME/kanban/gateway.log
-#   ttyd    — web terminal on 127.0.0.1:7681, exposed at /terminal/ behind
-#             HTTP Basic Auth (ADMIN_USERNAME/ADMIN_PASSWORD, generated at
-#             boot by /etc/cont-init.d/90-kanban-nginx)
+#   ttyd    — web terminal on 127.0.0.1:7681, exposed at /kanban-terminal/
+#             (ttyd token auth via -c; credential from /etc/nginx/.ttyd-credential)
 exec supervisord -n -c /etc/supervisor/supervisord.conf

@@ -5,11 +5,11 @@
     },
     "ADMIN_USERNAME": {
         "value": "admin",
-        "description": "Username for the /terminal/ web terminal basic-auth gate."
+        "description": "Username for the /kanban-terminal/ web terminal (ttyd token auth)."
     },
     "ADMIN_PASSWORD": {
         "value": "${{secret(16)}}",
-        "description": "Password for the /terminal/ web terminal basic-auth gate."
+        "description": "Password for the /kanban-terminal/ web terminal (ttyd token auth)."
     },
     "HERMES_HOME": {
         "value": "/opt/data",

@@ -1,6 +1,6 @@
 # Hermes Kanban Web router — one public URL, two upstreams:
 #   /                  -> uvicorn (FastAPI kanban app, 127.0.0.1:12700)
-#   /kanban-terminal/  -> ttyd web terminal (127.0.0.1:7681, HTTP Basic Auth)
+#   /kanban-terminal/  -> ttyd web terminal (127.0.0.1:7681, ttyd token auth)
 #
 # Generated at boot by /etc/cont-init.d/90-kanban-nginx from
 # /etc/nginx/nginx.conf.template (__PORT__ is substituted with $PORT).
@@ -49,11 +49,9 @@ http {
             proxy_read_timeout 3600s;
         }
 
-        # ttyd web terminal (WebSocket upgrade, HTTP Basic Auth)
-        # Main /kanban-terminal/ location: serves the page + /kanban-terminal/token endpoint behind auth_basic
+        # ttyd web terminal (WebSocket upgrade, ttyd built-in token auth)
+        # Main /kanban-terminal/ location: serves ttyd page (ttyd handles auth via -c token)
         location /kanban-terminal/ {
-            auth_basic "Hermes Kanban terminal";
-            auth_basic_user_file /etc/nginx/.htpasswd;
             proxy_pass http://127.0.0.1:7681/;
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
@@ -65,11 +63,8 @@ http {
             proxy_read_timeout 86400;
         }
 
-        # WebSocket upgrade path: no auth_basic (browsers don't send cached Basic
-        # creds on WS handshake). Instead, inject X-Auth-User header so ttyd's
-        # proxy-auth mode (-H X-Auth-User) can verify the authenticated user.
+        # WebSocket upgrade path: ttyd validates token from first WS message
         location = /kanban-terminal/ws {
-            auth_basic off;
             proxy_pass http://127.0.0.1:7681/ws;
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
@@ -78,7 +73,6 @@ http {
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_set_header X-Auth-User $remote_user;
             proxy_read_timeout 86400;
         }
     }

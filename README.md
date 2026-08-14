@@ -10,7 +10,7 @@ A web-based Kanban board for managing Hermes agent tasks. Features drag-and-drop
 
 # Deploy and Host
 
-Host your own Hermes Kanban board in minutes with a single click. The template provisions a FastAPI + vanilla JS single-page application running inside the official `nousresearch/hermes-agent` Docker image, with SSH-free persistent storage for all board and profile data plus a ttyd web terminal at `/terminal/`.
+Host your own Hermes Kanban board in minutes with a single click. The template provisions a FastAPI + vanilla JS single-page application running inside the official `nousresearch/hermes-agent` Docker image, with SSH-free persistent storage for all board and profile data plus a ttyd web terminal at `/kanban-terminal/`.
 
 ## Deploy to Railway
 
@@ -36,7 +36,7 @@ The app runs **inside the `nousresearch/hermes-agent` Docker image**, so the `he
 
 The Hermes runtime (`hermes` CLI + agent) is baked into the Docker image. The `/opt/hermes` directory in the container is the image's own runtime — it is **not** a persistent volume (Railway allows one volume per service, which is used for `/opt/data`).
 
-- To update `hermes`, open the web terminal at `/terminal/` and run `hermes update` (or `pip install -U hermes-agent`). The update installs to the image's `/opt/hermes` but **does not survive redeploys** — it will revert to the base-image version on the next deploy.
+- To update `hermes`, open the web terminal at `/kanban-terminal/` and run `hermes update` (or `pip install -U hermes-agent`). The update installs to the image's `/opt/hermes` but **does not survive redeploys** — it will revert to the base-image version on the next deploy.
 - If you need a persistent custom Hermes install, you would need a separate template/service pattern (not supported in this single-service template).
 
 ## Why Deploy
@@ -45,7 +45,7 @@ The Hermes runtime (`hermes` CLI + agent) is baked into the Docker image. The `/
 - **AI-agent-aware task board** — task lifecycle operations shell out to the real `hermes` CLI, so the board you manage is the same system your agents run on.
 - **Real-time by default** — SSE keeps multiple browser tabs in sync without polling.
 - **Optional auth** — lock the board behind a bearer token in one env var; leave it empty for an open team board.
-- **Built-in web terminal** — run `hermes` CLI maintenance commands right from the browser at `/terminal/`.
+- **Built-in web terminal** — run `hermes` CLI maintenance commands right from the browser at `/kanban-terminal/`.
 
 ## Common Use Cases
 
@@ -67,7 +67,7 @@ Hermes Kanban Web is a FastAPI + vanilla JS single-page application providing a 
 - **Dependency tracking** — parent/child task links with clickable navigation
 - **Active worker monitoring** — real-time PID liveness checks on running task workers
 - **Hermes CLI integration** — all task lifecycle operations (create, promote, block, complete, schedule, archive, comment) delegate to the `hermes` CLI
-- **Web terminal** — a ttyd terminal at `/terminal/` (HTTP Basic Auth) gives you a bash shell with the full `hermes` CLI on PATH for maintenance
+- **Web terminal** — a ttyd terminal at `/kanban-terminal/` (ttyd token auth) gives you a bash shell with the full `hermes` CLI on PATH for maintenance
 
 ## Authentication (optional)
 
@@ -75,12 +75,12 @@ By default the board is **open with no authentication**. To protect the API, set
 
 ## Web Terminal
 
-A **ttyd** web terminal is available at **`/terminal/`** (or `https://<your-app>.up.railway.app/terminal/`), protected by **HTTP Basic Auth**:
+A **ttyd** web terminal is available at **`/kanban-terminal/`** (or `https://<your-app>.up.railway.app/kanban-terminal/`), protected by **ttyd token authentication**:
 
 - Credentials come from `ADMIN_USERNAME` / `ADMIN_PASSWORD` (the template generates a random `ADMIN_PASSWORD` by default — read it in the Railway Variables tab after deploy; if empty at boot, a random one is printed to the container logs).
 - The shell is bash, running as the `hermes` user with `HERMES_HOME=/opt/data`, and the full **`hermes` CLI is on PATH** — e.g. `hermes kanban boards list`, `hermes kanban task --board <slug> --create "..."`, `hermes profile list`. A welcome banner lists the most useful commands.
 
-Architecture: nginx (the public `PORT`) routes `/` to the FastAPI app (uvicorn on `127.0.0.1:12700`) and `/terminal/` to ttyd (`127.0.0.1:7681`) behind `auth_basic`; supervisord supervises nginx, uvicorn, the Hermes gateway, and ttyd. The terminal is never exposed directly.
+Architecture: nginx (the public `PORT`) routes `/` to the FastAPI app (uvicorn on `127.0.0.1:12700`) and `/kanban-terminal/` to ttyd (`127.0.0.1:7681`); ttyd enforces token auth via `-c`; supervisord supervises nginx, uvicorn, the Hermes gateway, and ttyd. The terminal is never exposed directly.
 
 ## Self-hosting (Docker)
 
@@ -95,8 +95,8 @@ docker run -d --name hermes-kanban-web -p 8502:8502 -e PORT=8502 -e HERMES_HOME=
 | Variable | Default | Description |
 |---|---|---|
 | `PORT` | `8502` | HTTP port nginx listens on (Railway injects this automatically) |
-| `ADMIN_USERNAME` | `admin` | Username for the `/terminal/` web terminal basic-auth gate |
-| `ADMIN_PASSWORD` | *(generated)* | Password for the `/terminal/` web terminal basic-auth gate |
+|| `ADMIN_USERNAME` | `admin` | Username for the `/kanban-terminal/` web terminal (ttyd token auth) ||
+|| `ADMIN_PASSWORD` | *(generated)* | Password for the `/kanban-terminal/` web terminal (ttyd token auth) ||
 | `HERMES_HOME` | `/opt/data` | Root directory for all Hermes persistent state (boards, profiles, config) |
 | `HOME` | `$HERMES_HOME` | Set to match HERMES_HOME so `~` resolves to the volume |
 | `HERMES_KANBAN_API_TOKEN` | *(empty)* | Optional bearer token. When set, all API requests require `Authorization: Bearer <token>`. |

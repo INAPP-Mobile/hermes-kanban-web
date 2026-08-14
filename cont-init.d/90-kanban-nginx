@@ -13,22 +13,20 @@ echo "[kanban-nginx] configuring nginx to listen on ${PORT}"
 # Substitute __PORT__ in nginx template
 sed "s/__PORT__/${PORT}/g" /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
-# Create .htpasswd for nginx basic auth on /terminal/
-if [ -n "${ADMIN_PASSWORD}" ]; then
-    htpasswd -b -c /etc/nginx/.htpasswd "${ADMIN_USERNAME}" "${ADMIN_PASSWORD}"
-    echo "[kanban-nginx] /terminal/ basic auth enabled for user ${ADMIN_USERNAME}"
-else
-    # Generate random password if not provided
-    GEN_PASSWORD=$(openssl rand -base64 16 | tr -d "=+/")
-    htpasswd -b -c /etc/nginx/.htpasswd "${ADMIN_USERNAME}" "${GEN_PASSWORD}"
-    echo "[kanban-nginx] WARNING: ADMIN_PASSWORD unset — /terminal/ uses a generated password"
-    echo "[kanban-nginx] user=${ADMIN_USERNAME} password=${GEN_PASSWORD} (see Railway logs)"
-fi
-
 # Create .ttyd-credential for ttyd's -c option (username:password)
 # ttyd reads this for the AuthToken first-message check
-echo "${ADMIN_USERNAME}:${ADMIN_PASSWORD:-${GEN_PASSWORD}}" > /etc/nginx/.ttyd-credential
-chmod 600 /etc/nginx/.ttyd-credential
+if [ -n "${ADMIN_PASSWORD}" ]; then
+    CRED="${ADMIN_USERNAME}:${ADMIN_PASSWORD}"
+else
+    # Generate random password if not provided
+    CRED="${ADMIN_USERNAME}:$(openssl rand -base64 16 | tr -d '=+/')"
+    echo "[kanban-nginx] WARNING: ADMIN_PASSWORD unset — /kanban-terminal/ uses a generated password"
+    echo "[kanban-nginx] user=${ADMIN_USERNAME} password=${CRED#*:} (see Railway logs)"
+fi
 
-# Ensure nginx can read its config and auth files (nginx runs as hermes user via supervisord)
-chown hermes:hermes /etc/nginx/nginx.conf /etc/nginx/.htpasswd /etc/nginx/.ttyd-credential 2>/dev/null || true
+echo "${CRED}" > /etc/nginx/.ttyd-credential
+chmod 600 /etc/nginx/.ttyd-credential
+chown hermes:hermes /etc/nginx/.ttyd-credential 2>/dev/null || true
+
+# Ensure nginx can read its config (nginx runs as hermes user via supervisord)
+chown hermes:hermes /etc/nginx/nginx.conf 2>/dev/null || true
