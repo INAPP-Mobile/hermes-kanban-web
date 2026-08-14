@@ -18,8 +18,8 @@ COPY --chown=hermes:hermes . /app/
 RUN chmod +x /app/start.sh
 
 # --- Web terminal + process supervision + reverse proxy (hexo-template parity) ---
-# nginx fronts the public PORT and routes /terminal/ to ttyd behind HTTP
-# Basic Auth; supervisord supervises nginx, uvicorn, the gateway and ttyd.
+# nginx fronts the public PORT and routes /kanban-terminal/ to ttyd (ttyd token auth);
+# supervisord supervises nginx, uvicorn, the gateway and ttyd.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends nginx supervisor apache2-utils \
  && rm -rf /var/lib/apt/lists/* \
@@ -37,7 +37,7 @@ RUN chmod +x /usr/local/bin/start-ttyd.sh /usr/local/bin/terminal-shell.sh
 # nginx runtime config (rendered at boot with $PORT) + supervisord programs
 COPY nginx.conf.template /etc/nginx/nginx.conf.template
 COPY supervisord.conf /etc/supervisor/supervisord.conf
-# Root boot hook: renders nginx.conf and writes /etc/nginx/.htpasswd for /terminal/
+# Root boot hook: renders nginx.conf and writes .ttyd-credential for ttyd token auth
 COPY cont-init-nginx.sh /etc/cont-init.d/90-kanban-nginx
 RUN chmod +x /etc/cont-init.d/90-kanban-nginx
 

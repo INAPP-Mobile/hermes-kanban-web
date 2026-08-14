@@ -1,41 +1,42 @@
-#!/command/with-contenv sh
-# Root boot hook (s6 cont-init): generate the nginx runtime config and the
-# /terminal/ basic-auth htpasswd before the main program starts.
+#!/bin/sh
+# Render nginx.conf from template and create terminal auth files.
+# Runs as root during container boot (s6 cont-init or Railway direct-start).
+# Installed by the Dockerfile as /etc/cont-init.d/90-kanban-nginx.
+#
 # - nginx.conf is rendered from nginx.conf.template with $PORT substituted
 #   (Railway injects PORT; fallback 8502 matches the template default).
-# - .htpasswd is always written so nginx never 500s on a missing file and
-#   the terminal is never left open: ADMIN_* unset -> random password is
+# - .ttyd-credential is always written so ttyd has a credential for its
+#   AuthToken first-message check: ADMIN_* unset -> random password is
 #   generated and printed to the boot log.
+# - No nginx auth_basic / .htpasswd is created: Railway's edge proxy
+#   (railway-hikari) returns 407 when an Authorization header reaches a
+#   terminal-like path, so all terminal auth is delegated to ttyd (-c).
+
 set -e
 
 PORT="${PORT:-8502}"
+ADMIN_USERNAME="${ADMIN_USERNAME:-admin}"
+ADMIN_PASSWORD="${ADMIN_PASSWORD:-}"
+
 echo "[kanban-nginx] configuring nginx to listen on ${PORT}"
 
-mkdir -p /etc/nginx/conf.d
-sed "s|__PORT__|${PORT}|g" /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+# Substitute __PORT__ in nginx template
+sed "s/__PORT__/${PORT}/g" /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
-ADMIN_USERNAME="${ADMIN_USERNAME:-admin}"
-if [ -n "${ADMIN_PASSWORD:-}" ]; then
-    htpasswd -bc /etc/nginx/.htpasswd "$ADMIN_USERNAME" "$ADMIN_PASSWORD" 2>/dev/null \
-        || printf '%s:%s\n' "$ADMIN_USERNAME" "$(openssl passwd -apr1 "$ADMIN_PASSWORD")" > /etc/nginx/.htpasswd
-    echo "[kanban-nginx] /terminal/ basic auth enabled for user ${ADMIN_USERNAME}"
+# Create .ttyd-credential for ttyd's -c option (username:password)
+# ttyd reads this for the AuthToken first-message check
+if [ -n "${ADMIN_PASSWORD}" ]; then
+    CRED="${ADMIN_USERNAME}:${ADMIN_PASSWORD}"
 else
-    ADMIN_PASSWORD="$(openssl rand -hex 8)"
-    htpasswd -bc /etc/nginx/.htpasswd "$ADMIN_USERNAME" "$ADMIN_PASSWORD" 2>/dev/null \
-        || printf '%s:%s\n' "$ADMIN_USERNAME" "$(openssl passwd -apr1 "$ADMIN_PASSWORD")" > /etc/nginx/.htpasswd
-    echo "[kanban-nginx] WARNING: ADMIN_PASSWORD unset — /terminal/ uses a generated password"
-    echo "[kanban-nginx] user=${ADMIN_USERNAME} password=${ADMIN_PASSWORD} (see Railway logs)"
+    # Generate random password if not provided
+    CRED="${ADMIN_USERNAME}:$(openssl rand -base64 16 | tr -d '=+/')"
+    echo "[kanban-nginx] WARNING: ADMIN_PASSWORD unset — /kanban-terminal/ uses a generated password"
+    echo "[kanban-nginx] user=${ADMIN_USERNAME} password=${CRED#*:} (see Railway logs)"
 fi
-chmod 644 /etc/nginx/.htpasswd
 
-# Persist the plaintext credential for ttyd (-c): the WS upgrade path cannot
-# use nginx auth_basic (browsers don't send cached basic auth on WebSocket
-# handshakes), so ttyd enforces its own AuthToken check with the same
-# credential. Read by /usr/local/bin/start-ttyd.sh.
-printf '%s:%s\n' "$ADMIN_USERNAME" "$ADMIN_PASSWORD" > /etc/nginx/.ttyd-credential
+echo "${CRED}" > /etc/nginx/.ttyd-credential
 chmod 600 /etc/nginx/.ttyd-credential
-chown root:hermes /etc/nginx/.ttyd-credential 2>/dev/null || chmod 644 /etc/nginx/.ttyd-credential
+chown hermes:hermes /etc/nginx/.ttyd-credential 2>/dev/null || true
 
-# Writable runtime dirs for the non-root nginx (hermes user)
-mkdir -p /tmp/nginx-client-temp /tmp/nginx-proxy-temp /tmp/nginx-fastcgi-temp /tmp/nginx-uwsgi-temp /tmp/nginx-scgi-temp
-chown hermes:hermes /tmp/nginx-client-temp /tmp/nginx-proxy-temp /tmp/nginx-fastcgi-temp /tmp/nginx-uwsgi-temp /tmp/nginx-scgi-temp 2>/dev/null || true
+# Ensure nginx can read its config (nginx runs as hermes user via supervisord)
+chown hermes:hermes /etc/nginx/nginx.conf 2>/dev/null || true

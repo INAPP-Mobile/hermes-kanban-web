@@ -1,5 +1,5 @@
 #!/bin/bash
-# Interactive shell for the /terminal/ web terminal (spawned by ttyd).
+# Interactive shell for the /kanban-terminal/ web terminal (spawned by ttyd).
 # Prints a usage banner, then hands off to an interactive bash.
 # The hermes CLI stays on PATH so `hermes ...` works out of the box.
 export HOME="${HOME:-/opt/data}"

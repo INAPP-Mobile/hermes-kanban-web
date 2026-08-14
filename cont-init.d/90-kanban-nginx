@@ -1,6 +1,16 @@
 #!/bin/sh
 # Render nginx.conf from template and create terminal auth files.
 # Runs as root during container boot (s6 cont-init or Railway direct-start).
+# Installed by the Dockerfile as /etc/cont-init.d/90-kanban-nginx.
+#
+# - nginx.conf is rendered from nginx.conf.template with $PORT substituted
+#   (Railway injects PORT; fallback 8502 matches the template default).
+# - .ttyd-credential is always written so ttyd has a credential for its
+#   AuthToken first-message check: ADMIN_* unset -> random password is
+#   generated and printed to the boot log.
+# - No nginx auth_basic / .htpasswd is created: Railway's edge proxy
+#   (railway-hikari) returns 407 when an Authorization header reaches a
+#   terminal-like path, so all terminal auth is delegated to ttyd (-c).
 
 set -e
 

@@ -82,6 +82,8 @@ A **ttyd** web terminal is available at **`/kanban-terminal/`** (or `https://<yo
 
 Architecture: nginx (the public `PORT`) routes `/` to the FastAPI app (uvicorn on `127.0.0.1:12700`) and `/kanban-terminal/` to ttyd (`127.0.0.1:7681`); ttyd enforces token auth via `-c`; supervisord supervises nginx, uvicorn, the Hermes gateway, and ttyd. The terminal is never exposed directly.
 
+**Why no nginx `auth_basic`?** Railway's edge proxy (railway-hikari) intercepts terminal-like paths when an `Authorization` header is present, returning **407 Proxy Auth Required** before the request reaches your container. Browsers send cached Basic-Auth credentials on WebSocket upgrade handshakes, which would break the ttyd connection. Delegating auth to ttyd's built-in token check (credential written by the boot hook to `/etc/nginx/.ttyd-credential`, chmod 600) avoids sending any `Authorization` header to the edge entirely.
+
 ## Self-hosting (Docker)
 
 ```bash
@@ -137,5 +139,6 @@ To point at a different Ollama host/model instead of the bundled companion: set 
 - **Hermes CLI dependency**: Task operations, profile management, and board settings shell out to the `hermes` CLI via `subprocess.run` (from the base image's venv).
 - **SSE over WebSocket**: The frontend uses `EventSource` on `GET /api/events/stream`; an in-process stream polls board SQLite databases — no external gateway connection required.
 - **SQLite WAL mode**: All board databases use WAL journal mode with idempotent schema migrations.
-- **Four supervised processes**: nginx (public proxy on `$PORT`), uvicorn (app on `127.0.0.1:12700`), the Hermes gateway (embedded kanban dispatcher), and ttyd (web terminal on `127.0.0.1:7681`) run under **supervisord**; s6-overlay's `/init` (PID 1) manages lifecycle and reaps zombies, and a `cont-init.d` boot hook renders nginx.conf from `$PORT` and writes the `/terminal/` htpasswd.
+- **Four supervised processes**: nginx (public proxy on `$PORT`), uvicorn (app on `127.0.0.1:12700`), the Hermes gateway (embedded kanban dispatcher), and ttyd (web terminal on `127.0.0.1:7681`) run under **supervisord**; s6-overlay's `/init` (PID 1) manages lifecycle and reaps zombies.
+- **Terminal authentication**: The ttyd web terminal at `/kanban-terminal/` uses ttyd's built-in token auth (`-c user:pass`). No nginx `auth_basic` or `.htpasswd` is used — this avoids Railway's edge proxy (railway-hikari) intercepting WebSocket upgrades with cached Basic Auth headers and returning 407. A boot hook (`cont-init.d/90-kanban-nginx`) renders nginx.conf and writes the credential to `/etc/nginx/.ttyd-credential` (chmod 600, owned by `hermes`) for ttyd's first-message token check.
 - **Ollama companion service**: A separate `ollama/ollama` container runs alongside on the internal Railway network at `https://ollama.railway.internal:11434`, persists models at `/root/.ollama`, and pre-pulls `qwen3:8b` on first start. The app reaches it via `OLLAMA_BASE_URL`, auto-linked to the sibling.
