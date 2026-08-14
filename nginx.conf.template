@@ -49,37 +49,11 @@ http {
             proxy_read_timeout 3600s;
         }
 
-        # ttyd web terminal — page + token endpoint behind HTTP Basic Auth.
-        # Note: the WebSocket upgrade path (/terminal/ws) is a separate location
-        # below WITHOUT auth_basic, because browsers do not send cached HTTP
-        # Basic credentials on WebSocket handshakes (auth_basic would 401 every
-        # upgrade). Security there is enforced by ttyd's own auth: the -H
-        # auth-header check (nginx injects X-Auth-User) plus the AuthToken
-        # first-message check, where the token only comes from the
-        # auth-protected /terminal/token endpoint.
-        location /terminal {
+        # ttyd web terminal (WebSocket upgrade, HTTP Basic Auth)
+        location /terminal/ {
             auth_basic "Hermes Kanban terminal";
             auth_basic_user_file /etc/nginx/.htpasswd;
-            proxy_set_header X-Auth-User $remote_user;
             proxy_pass http://127.0.0.1:7681/;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "upgrade";
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_read_timeout 86400;
-        }
-
-        # ttyd WebSocket endpoint — NO auth_basic (browsers don't send cached
-        # basic auth on WS handshakes). ttyd runs with -H X-Auth-User (header
-        # presence check) + -c credential (AuthToken first-message check), so
-        # the terminal is still gated on a token obtainable only from the
-        # auth-protected /terminal/token endpoint.
-        location = /terminal/ws {
-            proxy_set_header X-Auth-User kanban;
-            proxy_pass http://127.0.0.1:7681/ws;
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
