@@ -29,22 +29,6 @@ if [ "$(id -u)" = 0 ]; then
             chown -R hermes:hermes "/opt/data/$sub" 2>/dev/null || true
         fi
     done
-    # Persistent Hermes install (optional Railway volume at /opt/hermes):
-    # a volume shadows the image's runtime and starts EMPTY, so first boot
-    # re-seeds it from the build-time snapshot (/opt/hermes.image). Manual
-    # `hermes` updates made in the web terminal then survive redeploys.
-    # Without a volume, /opt/hermes already has content and seeding is a no-op.
-    if [ -d /opt/hermes.image ] && [ ! -f /opt/hermes/.kanban-volume-seeded ]; then
-        if [ -z "$(ls -A /opt/hermes 2>/dev/null)" ]; then
-            echo "[kanban] seeding empty /opt/hermes volume from image snapshot"
-            cp -a /opt/hermes.image/. /opt/hermes/
-        fi
-        touch /opt/hermes/.kanban-volume-seeded 2>/dev/null || true
-    fi
-    if [ "$(stat -c %u /opt/hermes 2>/dev/null)" != "$(id -u hermes)" ]; then
-        chown -R hermes:hermes /opt/hermes 2>/dev/null || \
-            echo "[kanban] warning: chown /opt/hermes failed (rootless container?) — continuing"
-    fi
     # Railway direct-start mode skips the s6-overlay cont-init hook that
     # renders nginx.conf and the /terminal/ .htpasswd. Run it here as root so
     # supervisord's nginx (running as hermes) gets the /tmp-logging config

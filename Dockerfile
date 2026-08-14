@@ -17,14 +17,6 @@ COPY --chown=hermes:hermes . /app/
 # Ensure the kanban app entry point is executable
 RUN chmod +x /app/start.sh
 
-# Persistent Hermes install snapshot: a Railway volume mounted at /opt/hermes
-# shadows this directory and starts EMPTY, so first boot re-seeds it from a
-# pristine copy. Hardlinks keep the image size flat (no data duplicated);
-# fall back to a full copy if the filesystem rejects hardlinks.
-RUN cp -al /opt/hermes /opt/hermes.image 2>/dev/null || \
-    cp -a /opt/hermes /opt/hermes.image 2>/dev/null || \
-    echo "[kanban] warning: /opt/hermes not found — volume seeding disabled"
-
 # --- Web terminal + process supervision + reverse proxy (hexo-template parity) ---
 # nginx fronts the public PORT and routes /terminal/ to ttyd behind HTTP
 # Basic Auth; supervisord supervises nginx, uvicorn, the gateway and ttyd.

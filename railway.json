@@ -14,10 +14,6 @@
             {
                 "name": "hermes-data",
                 "mountPath": "/opt/data"
-            },
-            {
-                "name": "hermes-runtime",
-                "mountPath": "/opt/hermes"
             }
         ]
     }

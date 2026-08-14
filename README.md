@@ -16,7 +16,7 @@ Host your own Hermes Kanban board in minutes with a single click. The template p
 
 [![Deploy to Railway](https://railway.app/button.svg)](https://railway.com/deploy/hermes-kanban-web-1)
 
-Click the button above to deploy this template to Railway. The template provisions two services: the **hermes-kanban-web** app (from the `nousresearch/hermes-agent` Docker image) with persistent volumes at `/opt/data` (boards, profiles, config) and `/opt/hermes` (the Hermes runtime install), plus a companion **Ollama** service (from `ollama/ollama`) with a volume at `/root/.ollama` for local LLM inference. The app's `OLLAMA_BASE_URL` is auto-linked to the sibling over the internal Railway network.
+Click the button above to deploy this template to Railway. The template provisions two services: the **hermes-kanban-web** app (from the `nousresearch/hermes-agent` Docker image) with a persistent volume at `/opt/data` (boards, profiles, config), plus a companion **Ollama** service (from `ollama/ollama`) with a volume at `/root/.ollama` for local LLM inference. The app's `OLLAMA_BASE_URL` is auto-linked to the sibling over the internal Railway network.
 
 ## Dependencies for
 
@@ -25,19 +25,19 @@ The template is self-contained: it needs no external databases, caches, or third
 ### Deployment Dependencies
 
 - A Railway account with adequate quota for two small containers (Hobby or Pro plan).
-- Provisioned automatically: the **hermes-kanban-web** app service + persistent volumes (`/opt/data` and `/opt/hermes`), and the **Ollama** companion service + persistent volume (`/root/.ollama`), which pre-pulls `qwen3:8b` on first start.
+- Provisioned automatically: the **hermes-kanban-web** app service + persistent volume (`/opt/data`), and the **Ollama** companion service + persistent volume (`/root/.ollama`), which pre-pulls `qwen3:8b` on first start.
 - Optional: a cloud LLM provider (OpenAI-compatible, OpenAI, OpenRouter, Anthropic, or Groq) instead of the bundled Ollama.
 
 ## About Hosting
 
-The app runs **inside the `nousresearch/hermes-agent` Docker image**, so the `hermes` CLI is on PATH and all persistent state (boards, profiles, config) lives under `HERMES_HOME` (`/opt/data`) on a Railway volume shared with the Hermes agent runtime. Boards, profiles, stashed cards and theme survive redeploys and restarts.
+The app runs **inside the `nousresearch/hermes-agent` Docker image**, so the `hermes` CLI is on PATH and all persistent state (boards, profiles, config) lives under `HERMES_HOME` (`/opt/data`) on a Railway volume. Boards, profiles, stashed cards and theme survive redeploys and restarts.
 
 ### Updating Hermes
 
-The Hermes runtime install lives at `/opt/hermes`, which is also on a persistent volume. On first boot the container auto-seeds that volume from a pristine snapshot baked into the image, so everything works even with a fresh volume.
+The Hermes runtime (`hermes` CLI + agent) is baked into the Docker image. The `/opt/hermes` directory in the container is the image's own runtime — it is **not** a persistent volume (Railway allows one volume per service, which is used for `/opt/data`).
 
-- To update `hermes`, open the web terminal at `/terminal/` and run `hermes update` (or `pip install -U hermes-agent`). Because `/opt/hermes` is a volume, your update **survives redeploys**.
-- Trade-off: since the volume shadows the image, a newer base-image Hermes version does **not** auto-apply on redeploy. After a redeploy, run `hermes update` in the terminal to pull the new version, or detach the `/opt/hermes` volume to reset to the image's built-in version.
+- To update `hermes`, open the web terminal at `/terminal/` and run `hermes update` (or `pip install -U hermes-agent`). The update installs to the image's `/opt/hermes` but **does not survive redeploys** — it will revert to the base-image version on the next deploy.
+- If you need a persistent custom Hermes install, you would need a separate template/service pattern (not supported in this single-service template).
 
 ## Why Deploy
 
