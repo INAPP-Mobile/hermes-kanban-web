@@ -30,11 +30,10 @@ if [ "$(id -u)" = 0 ]; then
             chown -R hermes:hermes "/opt/data/$sub" 2>/dev/null || true
         fi
     done
-    for sub in agent bin cli.py config.yaml profiles skills plugins cron memories skins plans workspace home; do
-        if [ -e "/opt/hermes/$sub" ]; then
-            chown -R hermes:hermes "/opt/hermes/$sub" 2>/dev/null || true
-        fi
-    done
+    # /opt/hermes is image-owned and already hermes-owned in the base image —
+    # do NOT chown -R it on every boot (thousands of files, ~50s stall that
+    # blew Railway's healthcheck window). Just chown the top dir defensively.
+    chown hermes:hermes /opt/hermes 2>/dev/null || true
     # Railway direct-start mode skips the s6-overlay cont-init hook that
     # renders nginx.conf and the /terminal/ .htpasswd. Run it here as root so
     # supervisord's nginx (running as hermes) gets the /tmp-logging config
