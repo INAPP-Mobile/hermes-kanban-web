@@ -90,7 +90,17 @@ var App = {
     closeSetupWizard: function() {
         document.getElementById('setupWizard').classList.remove('active');
     },
+
+    // Open the ttyd web terminal (/kanban-terminal/) in a new tab.
+    // ttyd serves its own login page and enforces token auth, so the
+    // terminal button works with or without the kanban API token.
+    launchWebTerminal: function() {
+        window.open('/kanban-terminal/', '_blank', 'noopener');
+    },
 };
+
+// Inline handler on #terminalBtn (index.html) resolves via global scope.
+window.launchWebTerminal = App.launchWebTerminal;
 
 document.addEventListener('DOMContentLoaded', function() {
     // Wire up relaunch button (no inline handler elsewhere)
