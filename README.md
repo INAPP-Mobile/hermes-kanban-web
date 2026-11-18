@@ -71,14 +71,14 @@ Hermes Kanban Web is a FastAPI + vanilla JS single-page application providing a 
 
 ## Authentication (optional)
 
-By default the board is **open with no authentication**. To protect the API, set `HERMES_KANBAN_API_TOKEN` (Railway Vars tab): leave it empty for an open board, or set it to a secret value and every API request (including the live SSE stream) must send `Authorization: Bearer <token>`. Generate one with `openssl rand -hex 32`.
+By default the board is **open with no authentication**. To protect the API, set `HERMES_KANBAN_API_TOKEN` (Railway Vars tab): leave it empty for an open board, or set it to a secret value and every API request (including the live SSE stream) must send `Authorization: Bearer {token}`. Generate one with `openssl rand -hex 32`.
 
 ## Web Terminal
 
-A **ttyd** web terminal is available at **`/kanban-terminal/`** (or `https://<your-app>.up.railway.app/kanban-terminal/`), protected by **ttyd token authentication**:
+A **ttyd** web terminal is available at **`/kanban-terminal/`** (or `https://{your-app}.up.railway.app/kanban-terminal/`), protected by **ttyd token authentication**:
 
 - Credentials come from `ADMIN_USERNAME` / `ADMIN_PASSWORD` (the template generates a random `ADMIN_PASSWORD` by default — read it in the Railway Variables tab after deploy; if empty at boot, a random one is printed to the container logs).
-- The shell is bash, running as the `hermes` user with `HERMES_HOME=/opt/data`, and the full **`hermes` CLI is on PATH** — e.g. `hermes kanban boards list`, `hermes kanban task --board <slug> --create "..."`, `hermes profile list`. A welcome banner lists the most useful commands.
+- The shell is bash, running as the `hermes` user with `HERMES_HOME=/opt/data`, and the full **`hermes` CLI is on PATH** — e.g. `hermes kanban boards list`, `hermes kanban task --board {slug} --create "..."`, `hermes profile list`. A welcome banner lists the most useful commands.
 
 Architecture: nginx (the public `PORT`) routes `/` to the FastAPI app (uvicorn on `127.0.0.1:12700`) and `/kanban-terminal/` to ttyd (`127.0.0.1:7681`); ttyd enforces token auth via `-c`; supervisord supervises nginx, uvicorn, the Hermes gateway, and ttyd. The terminal is never exposed directly.
 
@@ -101,7 +101,7 @@ docker run -d --name hermes-kanban-web -p 8502:8502 -e PORT=8502 -e HERMES_HOME=
 || `ADMIN_PASSWORD` | *(generated)* | Password for the `/kanban-terminal/` web terminal (ttyd token auth) ||
 | `HERMES_HOME` | `/opt/data` | Root directory for all Hermes persistent state (boards, profiles, config) |
 | `HOME` | `$HERMES_HOME` | Set to match HERMES_HOME so `~` resolves to the volume |
-| `HERMES_KANBAN_API_TOKEN` | *(empty)* | Optional bearer token. When set, all API requests require `Authorization: Bearer <token>`. |
+| `HERMES_KANBAN_API_TOKEN` | *(empty)* | Optional bearer token. When set, all API requests require `Authorization: Bearer {token}`. |
 
 ## Persistent Volume
 
@@ -115,7 +115,7 @@ HERMES_HOME/
 │   └── worker2/profile.yaml
 ├── kanban/
 │   ├── boards/          # Per-board SQLite databases
-│   │   └── <slug>/kanban.db
+│   │   └── {slug}/kanban.db
 │   ├── stash/           # Local task stash (disconnected from boards)
 │   └── theme.json       # Dark/light theme preference
 ```
@@ -124,7 +124,7 @@ In Railway, the volume is mounted at `/opt/data` (the default `HERMES_HOME` in t
 
 ## LLM Setup
 
-A bundled **Ollama** companion service runs on deploy (pre-pulled `qwen3:8b`), and a **setup wizard** appears on first open. Pick a provider, base URL, model, and API key (if any), then **Save & Reload**. The wizard writes provider env vars to `/opt/data/.env` and sets the model via `hermes config set model`. For the bundled Ollama the base URL is already wired to `https://ollama.railway.internal:11434` — just confirm the model. The modal won't reappear after setup; to change the LLM later, edit `/opt/data/.env` and run `hermes config set model <model>`.
+A bundled **Ollama** companion service runs on deploy (pre-pulled `qwen3:8b`), and a **setup wizard** appears on first open. Pick a provider, base URL, model, and API key (if any), then **Save & Reload**. The wizard writes provider env vars to `/opt/data/.env` and sets the model via `hermes config set model`. For the bundled Ollama the base URL is already wired to `https://ollama.railway.internal:11434` — just confirm the model. The modal won't reappear after setup; to change the LLM later, edit `/opt/data/.env` and run `hermes config set model {model}`.
 
 ### Supported Providers
 
