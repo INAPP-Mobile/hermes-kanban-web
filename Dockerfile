@@ -1,4 +1,4 @@
-FROM nousresearch/hermes-agent:v0.23.2
+FROM nousresearch/hermes-agent:v0.23.3
 
 LABEL org.opencontainers.image.title="hermes-kanban-web" \
       org.opencontainers.image.description="Web-based Kanban board for managing Hermes agent tasks" \
